@@ -10,7 +10,11 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.2
-  camera: ^0.9.4+14
+  camera: ^0.11.0
+  path_provider: ^2.0.11
+  path: ^1.8.0
+  video_player: ^2.6.0
+
 
 dev_dependencies:
   flutter_test:
