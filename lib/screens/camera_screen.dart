@@ -2,10 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_camera_example/services/global_state.dart';
 import 'package:path_provider/path_provider.dart';
 import '../widgets/recording_indicator.dart';
 import '../utils/camera_utils.dart';
-import 'media_list_screen.dart';
 import '../main.dart';
 
 class CameraScreen extends StatefulWidget {
@@ -22,6 +22,9 @@ class _CameraScreenState extends State<CameraScreen> {
   Timer? _recordingTimer;
   int _recordingDuration = 0;
   String? _videoPath;
+  CameraOrientation? orientation = GlobalState.getOrientation();
+  int _countdownValue = 3;
+  bool _isCountingDown = false;
 
   @override
   void initState() {
@@ -40,11 +43,24 @@ class _CameraScreenState extends State<CameraScreen> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _takePicture() async {
-    final XFile image = await _controller.takePicture();
+  Future<void> _startCountdown() async {
     setState(() {
-      _mediaList.insert(0, image.path);
+      _isCountingDown = true;
+      _countdownValue = 3;
     });
+
+    for (int i = 3; i > 0; i--) {
+      setState(() {
+        _countdownValue = i;
+      });
+      await Future.delayed(const Duration(seconds: 1));
+    }
+
+    setState(() {
+      _isCountingDown = false;
+    });
+
+    await _startVideoRecording();
   }
 
   Future<void> _startVideoRecording() async {
@@ -58,6 +74,7 @@ class _CameraScreenState extends State<CameraScreen> {
     final String filePath = '$videoDirectory/$currentTime.mp4';
 
     try {
+      GlobalState.addMedia(filePath);
       await _controller.startVideoRecording();
       setState(() {
         _isRecording = true;
@@ -94,15 +111,6 @@ class _CameraScreenState extends State<CameraScreen> {
     }
   }
 
-  void _viewMediaList() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MediaListScreen(mediaList: _mediaList),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _controller.dispose();
@@ -115,37 +123,31 @@ class _CameraScreenState extends State<CameraScreen> {
     if (!_controller.value.isInitialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Camera App')),
+      appBar: AppBar(title: const Text('')),
       body: Stack(
         children: <Widget>[
           CameraPreview(_controller),
           if (_isRecording) RecordingIndicator(duration: _recordingDuration),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  FloatingActionButton(
-                    child: const Icon(Icons.camera_alt),
-                    onPressed: _isRecording ? null : _takePicture,
-                    backgroundColor: _isRecording ? Colors.grey : null,
-                  ),
-                  FloatingActionButton(
-                    child: Icon(_isRecording ? Icons.stop : Icons.videocam),
-                    onPressed: _isRecording
-                        ? _stopVideoRecording
-                        : _startVideoRecording,
-                    backgroundColor: _isRecording ? Colors.red : null,
-                  ),
-                  FloatingActionButton(
-                    child: const Icon(Icons.photo_library),
-                    onPressed: _isRecording ? null : _viewMediaList,
-                    backgroundColor: _isRecording ? Colors.grey : null,
-                  ),
-                ],
+          if (_isCountingDown)
+            Center(
+              child: Text(
+                '$_countdownValue',
+                style: const TextStyle(fontSize: 100, color: Colors.white),
+              ),
+            ),
+          Positioned(
+            bottom: 75,
+            left: MediaQuery.of(context).size.width / 2,
+            child: Transform.translate(
+              offset: const Offset(-56 / 2, 0),
+              child: FloatingActionButton(
+                child: Icon(_isRecording ? Icons.stop : Icons.videocam),
+                onPressed: _isRecording
+                    ? _stopVideoRecording
+                    : (_isCountingDown ? null : _startCountdown),
+                backgroundColor: _isRecording ? Colors.red : null,
               ),
             ),
           ),

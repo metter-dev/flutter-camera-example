@@ -10,7 +10,7 @@ class MediaListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Media List')),
+      appBar: AppBar(title: const Text('הסרטונים שלך')),
       body: ListView.builder(
         itemCount: mediaList.length,
         itemBuilder: (context, index) {

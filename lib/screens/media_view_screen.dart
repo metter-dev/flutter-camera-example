@@ -36,7 +36,7 @@ class _MediaViewScreenState extends State<MediaViewScreen> {
   Widget build(BuildContext context) {
     final isVideo = widget.mediaPath.endsWith('.mp4');
     return Scaffold(
-      appBar: AppBar(title: Text(isVideo ? 'Video' : 'Photo')),
+      appBar: AppBar(title: Text(isVideo ? 'וידאו' : 'תמונה')),
       body: Center(
         child: isVideo
             ? _videoController!.value.isInitialized

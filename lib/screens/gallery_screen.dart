@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/services/global_state.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
@@ -15,25 +16,10 @@ class GalleryScreen extends StatefulWidget {
 
 class _GalleryScreenState extends State<GalleryScreen> {
   String _searchQuery = '';
-  List<String> _mediaList = [];
 
   @override
   void initState() {
     super.initState();
-    _loadMediaList();
-  }
-
-  Future<void> _loadMediaList() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final files = directory.listSync(recursive: true);
-    setState(() {
-      _mediaList = files
-          .where((file) =>
-              file.path.endsWith('.jpg') || file.path.endsWith('.mp4'))
-          .map((file) => file.path)
-          .toList();
-      _mediaList.sort((a, b) => b.compareTo(a)); // Sort by newest first
-    });
   }
 
   Future<Widget> _getMediaThumbnail(String mediaPath) async {
@@ -79,8 +65,39 @@ class _GalleryScreenState extends State<GalleryScreen> {
     return months[month - 1];
   }
 
+  Widget _buildNavItem(IconData icon, String label, VoidCallback onPressed) {
+    return Expanded(
+      child: InkWell(
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: const TextStyle(fontSize: 9),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
+
+  
+    final List<String> _mediaList = GlobalState.getMediaList();
+
+
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('מֵטר', style: TextStyle(fontSize: 42)),
@@ -154,8 +171,6 @@ class _GalleryScreenState extends State<GalleryScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // TODO: Implement camera/video capture functionality
-          print('Open camera/video capture');
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -166,33 +181,26 @@ class _GalleryScreenState extends State<GalleryScreen> {
         backgroundColor: const Color.fromARGB(255, 76, 116, 175),
         shape: const CircleBorder(),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.settings),
-                onPressed: () {
-                  // TODO: Navigate to Settings screen
-                  print('Navigate to Settings screen');
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.person),
-                onPressed: () {
-                  // TODO: Navigate to Profile screen
-                  print('Navigate to Profile screen');
-                },
-              ),
-            ],
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'הגדרות',
           ),
-        ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'פרופיל',
+          ),
+        ],
+        onTap: (index) {
+          if (index == 0) {
+            print('Navigate to Settings screen');
+          } else if (index == 1) {
+            print('Navigate to Profile screen');
+          }
+        },
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
