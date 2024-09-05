@@ -22,11 +22,17 @@ class CameraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    GlobalState.init(context);
     return MaterialApp(
-      title: 'Camera App',
-      theme: ThemeData(primarySwatch: Colors.blue),
-      home: const GalleryScreen(),
+      title: 'Flutter Camera Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: Builder(
+        builder: (BuildContext context) {
+          GlobalState.init(context);
+          return const GalleryScreen();
+        },
+      ),
     );
   }
 }

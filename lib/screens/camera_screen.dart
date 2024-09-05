@@ -2,6 +2,10 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_camera_example/classes/video.dart';
+import 'package:flutter_camera_example/screens/add_videos_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:video_player/video_player.dart';
 import 'package:flutter_camera_example/services/global_state.dart';
 import 'package:path_provider/path_provider.dart';
 import '../widgets/recording_indicator.dart';
@@ -18,28 +22,27 @@ class CameraScreen extends StatefulWidget {
 class _CameraScreenState extends State<CameraScreen> {
   late CameraController _controller;
   bool _isRecording = false;
-  List<String> _mediaList = [];
+  bool _isReviewing = false;
   Timer? _recordingTimer;
   int _recordingDuration = 0;
   String? _videoPath;
-  CameraOrientation? orientation = GlobalState.getOrientation();
+  CameraOrientation? orientation;
   int _countdownValue = 3;
   bool _isCountingDown = false;
+  late VideoPlayerController _videoPlayerController;
+  double _currentPosition = 0.0;
 
   @override
   void initState() {
     super.initState();
     _initializeCamera();
-    _loadMediaList();
+    orientation = Provider.of<AppStateModel>(context, listen: false)
+        .preferences
+        .selectedOrientation;
   }
 
   Future<void> _initializeCamera() async {
     _controller = await initializeCamera(cameras);
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _loadMediaList() async {
-    _mediaList = await loadMediaList();
     if (mounted) setState(() {});
   }
 
@@ -74,7 +77,6 @@ class _CameraScreenState extends State<CameraScreen> {
     final String filePath = '$videoDirectory/$currentTime.mp4';
 
     try {
-      GlobalState.addMedia(filePath);
       await _controller.startVideoRecording();
       setState(() {
         _isRecording = true;
@@ -98,23 +100,93 @@ class _CameraScreenState extends State<CameraScreen> {
 
     try {
       XFile videoFile = await _controller.stopVideoRecording();
-      final String filePath = _videoPath!;
-      await videoFile.saveTo(filePath);
+      await videoFile.saveTo(_videoPath!);
+      _recordingTimer?.cancel();
+
+      // Initialize video player for review
+      _videoPlayerController = VideoPlayerController.file(File(_videoPath!));
+      await _videoPlayerController.initialize();
+      await _videoPlayerController.setLooping(true);
+      await _videoPlayerController.play();
+
+      // Apply image enhancement
+      await _applyImageEnhancement();
+
       setState(() {
         _isRecording = false;
-        _mediaList.insert(0, filePath);
+        _isReviewing = true;
       });
-      _recordingTimer?.cancel();
-      _videoPath = null;
+
+      // Update position periodically
+      Timer.periodic(const Duration(milliseconds: 200), (timer) {
+        if (mounted && _isReviewing) {
+          setState(() {
+            _currentPosition =
+                _videoPlayerController.value.position.inMilliseconds /
+                    _videoPlayerController.value.duration.inMilliseconds;
+          });
+        } else {
+          timer.cancel();
+        }
+      });
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<void> _applyImageEnhancement() async {
+    // This is a placeholder for image enhancement
+    // In a real implementation, you would process the video file here
+    // For example, you might use FFmpeg to adjust brightness and color
+    print("Applying image enhancement...");
+    await Future.delayed(
+        const Duration(seconds: 2)); // Simulating processing time
+  }
+
+  void _saveVideo() {
+    final appState = Provider.of<AppStateModel>(context, listen: false);
+
+    CameraOrientation? _orientation = appState.preferences.selectedOrientation;
+
+    final videoObject = Video(
+        path: _videoPath!,
+        recordedAt: DateTime.now(),
+        duration: Duration(seconds: _recordingDuration),
+        orientation: _orientation ?? CameraOrientation.portrait);
+
+    appState.memoryAddMedia(videoObject);
+
+    // Add the video to AppStateModel
+    Provider.of<AppStateModel>(context, listen: false).addMedia(_videoPath!);
+    // Navigate back or to gallery
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const AddVideosScreen()),
+    );
+  }
+
+  void _reshootVideo() {
+    // Reset state for new recording
+    setState(() {
+      _isReviewing = false;
+      _recordingDuration = 0;
+      _videoPath = null;
+    });
+    _videoPlayerController.dispose();
+  }
+
+  void _seekVideo(double position) {
+    final Duration duration = _videoPlayerController.value.duration;
+    final newPosition = duration * position;
+    _videoPlayerController.seekTo(newPosition);
   }
 
   @override
   void dispose() {
     _controller.dispose();
     _recordingTimer?.cancel();
+    if (_isReviewing) {
+      _videoPlayerController.dispose();
+    }
     super.dispose();
   }
 
@@ -124,8 +196,84 @@ class _CameraScreenState extends State<CameraScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    if (_isReviewing) {
+      return Scaffold(
+        body: Stack(
+          children: [
+            VideoPlayer(_videoPlayerController),
+            Positioned(
+              top: 40,
+              left: 20,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Text(
+                  '${_recordingDuration ~/ 60}:${(_recordingDuration % 60).toString().padLeft(2, '0')}',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Column(
+                children: [
+                  Container(
+                    height: 50,
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    child: SliderTheme(
+                      data: SliderTheme.of(context).copyWith(
+                        trackHeight: 2.0,
+                        thumbShape: const RoundSliderThumbShape(
+                            enabledThumbRadius: 8.0),
+                        overlayShape:
+                            const RoundSliderOverlayShape(overlayRadius: 16.0),
+                      ),
+                      child: Slider(
+                        value: _currentPosition,
+                        onChanged: (newPosition) {
+                          setState(() {
+                            _currentPosition = newPosition;
+                          });
+                          _seekVideo(newPosition);
+                        },
+                        activeColor: Colors.white,
+                        inactiveColor: Colors.grey,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: _reshootVideo,
+                        child: const Text('Reshoot'),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey),
+                      ),
+                      ElevatedButton(
+                        onPressed: _saveVideo,
+                        child: const Text('Done'),
+                        style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('')),
       body: Stack(
         children: <Widget>[
           CameraPreview(_controller),

@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/classes/video.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
 
 enum CameraOrientation { landscape, portrait }
 
+
 class AppState {
   CameraOrientation? selectedOrientation;
   List<String> mediaList = [];
+  List<Video> memoryMediaList = [];
+
+  
 
   void setSelectedOrientation(CameraOrientation orientation) {
     selectedOrientation = orientation;
@@ -25,6 +30,14 @@ class AppState {
 
   void addMedia(String path) {
     mediaList.insert(0, path);
+  }
+
+  void memoryAddMedia(Video videoObject) {
+    memoryMediaList.insert(0, videoObject);
+  }
+
+  void clearMemoryMediaList() {
+    memoryMediaList.clear();
   }
 }
 
@@ -45,6 +58,16 @@ class AppStateModel extends ChangeNotifier {
 
   void addMedia(String path) {
     _preferences.addMedia(path);
+    notifyListeners();
+  }
+
+  void memoryAddMedia(Video videoObject) {
+    _preferences.memoryAddMedia(videoObject);
+    notifyListeners();
+  }
+
+  void clearMemoryMediaList() {
+    _preferences.clearMemoryMediaList();
     notifyListeners();
   }
 }
@@ -80,5 +103,13 @@ class GlobalState {
 
   static void addMedia(String path) {
     _getModel().addMedia(path);
+  }
+
+  static void memoryAddMedia(Video videoObject) {
+    _getModel().memoryAddMedia(videoObject);
+  }
+
+  static void clearMemoryMediaList() {
+    _getModel().clearMemoryMediaList();
   }
 }
