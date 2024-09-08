@@ -114,7 +114,8 @@ class _OrientationOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final app = Provider.of<AppStateModel>(context);
-    final selectedOrientation = app.preferences.selectedOrientation;
+    final selectedOrientation =
+        app.preferences.selectedOrientation ?? CameraOrientation.portrait;
 
     final isSelected = selectedOrientation == orientation;
 
