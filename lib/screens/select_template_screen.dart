@@ -22,6 +22,12 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
   VideoPlayerController? _videoController;
   bool _isProcessing = false;
 
+@override
+  void initState() {
+    super.initState();
+    _initializeVideoPlayer();
+  }
+
   @override
   void dispose() {
     _videoController?.dispose();
@@ -111,12 +117,14 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
         case 1:
           textOverlays = {
             'להשכרה': const Offset(0.05, 0.85),
-            'ש"ח1,000,000': const Offset(0.8, 0.9),
+            'שח1,000,000': const Offset(0.8, 0.9),
           };
+ 
           break;
         default:
           textOverlays = {};
       }
+      await _initializeVideoPlayer();
 
       final processedPath =
           await processVideoWithOverlay(videoPath, textOverlays);
@@ -126,9 +134,12 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
           _processedVideoPath = processedPath;
           _isProcessing = false;
         });
-        await _initializeVideoPlayer();
       } else {
+        setState(() {
+          _isProcessing = false;
+        });
         throw Exception("Video processing failed");
+        
       }
     } catch (e) {
       print("Error in _processVideoWithTemplate: $e");
@@ -230,7 +241,12 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
                     ],
                   )
                 else
-                  ...[],
+                  ...[
+                  _buildTemplateCard(
+                    index: 0,
+                    child: _buildTemplatePreview(isFirstTemplate: true),
+                  ),
+                ],
               ],
             ),
           ),
@@ -314,9 +330,9 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
 
   Widget _buildTemplateCard({required int index, required Widget child}) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        await _processVideoWithTemplate(index);
         setState(() => _selectedTemplateIndex = index);
-        _processVideoWithTemplate(index);
       },
       child: Container(
         decoration: BoxDecoration(
