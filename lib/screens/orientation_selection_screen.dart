@@ -125,8 +125,8 @@ class _OrientationOption extends StatelessWidget {
         onTap: () => GlobalState.setOrientation(orientation),
         borderRadius: BorderRadius.circular(8),
         child: Ink(
-          width: 175,
-          height: 300,
+          width: MediaQuery.sizeOf(context).width / 2.5,
+          height: MediaQuery.sizeOf(context).height / 3,
           decoration: BoxDecoration(
             border: Border.all(
               color: isSelected

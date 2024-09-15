@@ -27,12 +27,18 @@ class CameraApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: Builder(
-        builder: (BuildContext context) {
-          GlobalState.init(context);
-          return const GalleryScreen();
-        },
-      ),
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: Builder(
+            builder: (BuildContext context) {
+              GlobalState.init(context);
+              return child!;
+            },
+          ),
+        );
+      },
+      home: const GalleryScreen(),
     );
   }
 }
