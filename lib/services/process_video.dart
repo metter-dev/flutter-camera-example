@@ -1,72 +1,33 @@
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit.dart';
-// import 'package:ffmpeg_kit_flutter_full/return_code.dart';
-// import 'package:path_provider/path_provider.dart';
-// import 'package:flutter/services.dart' show rootBundle;
-
-// Future<String?> processVideoWithOverlay(
-//     String inputPath, Map<String, Offset> textOverlays) async {
-//   try {
-//     final Directory tempDir = await getTemporaryDirectory();
-//     final String outputPath =
-//         '${tempDir.path}/output_${DateTime.now().millisecondsSinceEpoch}.mp4';
-
-//     // Copy font file to a temporary location
-//     final fontBytes = await rootBundle.load('assets/fonts/Roboto-Regular.ttf');
-//     final fontFile = File('${tempDir.path}/Roboto-Regular.ttf');
-//     await fontFile.writeAsBytes(fontBytes.buffer.asUint8List());
-
-//     String filterComplex = 'format=yuv420p,';
-//     int index = 0;
-//     textOverlays.forEach((text, offset) {
-//       const boxWidth = 200;
-//       const boxHeight = 40;
-
-//       filterComplex +=
-//           'drawbox=x=${offset.dx}*w:y=${offset.dy}*h:w=$boxWidth:h=$boxHeight:color=black@0.5:t=fill,';
-//       filterComplex +=
-//           'drawtext=text=\'$text\':fontfile=${fontFile.path}:fontcolor=white:fontsize=24:x=${offset.dx}*w+5:y=${offset.dy}*h+5';
-
-//       if (index < textOverlays.length - 1) {
-//         filterComplex += ',';
-//       }
-//       index++;
-//     });
-
-//     // Use more compatible encoding settings
-//     final command =
-//         '-i $inputPath -vf "$filterComplex" -c:v mpeg4 -q:v 2 -c:a aac -b:a 128k $outputPath';
-
-//     print("FFmpeg command: $command"); // Log the command for debugging
-
-//     final session = await FFmpegKit.execute(command);
-//     final returnCode = await session.getReturnCode();
-
-//     if (ReturnCode.isSuccess(returnCode)) {
-//       print("Video processing completed successfully.");
-//       return outputPath;
-//     } else {
-//       final logs = await session.getLogs();
-//       print("Error while processing video. FFmpeg logs:");
-//       for (var log in logs) {
-//         print(log.getMessage());
-//       }
-//       return null;
-//     }
-//   } catch (e) {
-//     print("Exception during video processing: $e");
-//     return null;
-//   }
-// }
 import 'dart:io';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_full/return_code.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
-Future<String?> processVideoWithOverlay(
-    String inputPath, Map<String, Offset> textOverlays) async {
+class TextOverlay {
+  final String text;
+  final Offset position;
+  final Color textColor;
+  final Color backgroundColor;
+  final double fontSize;
+  final double boxWidth;
+  final double boxHeight;
+
+  TextOverlay({
+    required this.text,
+    required this.position,
+    this.textColor = Colors.white,
+    this.backgroundColor = Colors.black,
+    this.fontSize = 24,
+    this.boxWidth = 200,
+    this.boxHeight = 40,
+  });
+}
+
+Future<String?> processVideoWithComplexOverlay(
+    String inputPath, List<TextOverlay> textOverlays,
+    {bool isRTL = true}) async {
   try {
     final Directory tempDir = await getTemporaryDirectory();
     final String outputPath =
@@ -77,24 +38,36 @@ Future<String?> processVideoWithOverlay(
     final fontFile = File('${tempDir.path}/Rubik-Regular.ttf');
     await fontFile.writeAsBytes(fontBytes.buffer.asUint8List());
 
-    String filterComplex = 'format=yuv420p,';
-    int index = 0;
-    textOverlays.forEach((text, offset) {
-      const boxWidth = 200;
-      const boxHeight = 40;
+    String filterComplex = '';
 
-      final escapedText = _escapeTextForFFmpeg(text);
+    for (int i = 0; i < textOverlays.length; i++) {
+      final overlay = textOverlays[i];
+      final escapedText = _escapeTextForFFmpeg(overlay.text);
+      final bgColor = _colorToFFmpegString(overlay.backgroundColor);
+      final textColor = _colorToFFmpegString(overlay.textColor);
 
-      filterComplex +=
-          'drawbox=x=${offset.dx}*w:y=${offset.dy}*h:w=$boxWidth:h=$boxHeight:color=black@0.5:t=fill,';
-      filterComplex +=
-          'drawtext=text=\'$escapedText\':fontfile=${fontFile.path}:fontcolor=white:fontsize=24:x=${offset.dx}*w+5:y=${offset.dy}*h+5';
+      // Adjust x-coordinate for RTL if needed
+      final xPosition =
+          isRTL ? '(w-w*${overlay.position.dx})' : '(w*${overlay.position.dx})';
 
-      if (index < textOverlays.length - 1) {
+      // Create background rectangle and text at the bottom corners
+      filterComplex += 'drawbox=x=$xPosition-${overlay.boxWidth}/2:'
+          // 'y=h-h*${overlay.position.dy}-${overlay.boxHeight}/2:'
+          'y=ih-h-45:'
+          'w=${overlay.boxWidth}:'
+          'h=${overlay.boxHeight}:'
+          'color=$bgColor@1:t=fill,'
+          'drawtext=text=\'$escapedText\':'
+          'fontfile=${fontFile.path}:'
+          'fontcolor=$textColor:'
+          'fontsize=${overlay.fontSize}:'
+          'x=$xPosition-tw/2:'
+          'y=h-h*${overlay.position.dy}-th/2';
+
+      if (i < textOverlays.length - 1) {
         filterComplex += ',';
       }
-      index++;
-    });
+    }
 
     final command =
         '-i $inputPath -vf "$filterComplex" -c:v mpeg4 -q:v 2 -c:a aac -b:a 128k $outputPath';
@@ -122,18 +95,9 @@ Future<String?> processVideoWithOverlay(
 }
 
 String _escapeTextForFFmpeg(String text) {
-  return text.split('').map((char) {
-    switch (char) {
-      case "'":
-        return "'\\''"; // Escape single quotes
-      case '\\':
-        return '\\\\'; // Escape backslashes
-      case ':':
-        return '\\:'; // Escape colons
-      case ',':
-        return '\\,'; // Escape commas
-      default:
-        return char; // Leave all other characters (including Hebrew) as is
-    }
-  }).join('');
+  return text.replaceAll("'", "'\\''");
+}
+
+String _colorToFFmpegString(Color color) {
+  return '0x${color.value.toRadixString(16).padLeft(8, '0')}';
 }

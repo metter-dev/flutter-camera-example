@@ -22,7 +22,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
   VideoPlayerController? _videoController;
   bool _isProcessing = false;
 
-@override
+  @override
   void initState() {
     super.initState();
     _initializeVideoPlayer();
@@ -106,28 +106,54 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
       final appState = Provider.of<AppStateModel>(context, listen: false);
       final videoPath = appState.preferences.memoryMediaList.first.path;
 
-      Map<String, Offset> textOverlays;
+      List<TextOverlay> textOverlays = [];
       switch (templateIndex) {
         case 0:
-          textOverlays = {
-            'Your Name Here': const Offset(0.05, 0.9),
-            '\$ 1,000,000': const Offset(0.8, 0.9),
-          };
+          textOverlays = [
+            TextOverlay(
+              text: 'Your Name Here',
+              position:
+                  const Offset(0.05, 0.9), // 5% from left/right and bottom
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 24,
+              boxWidth: 200,
+              boxHeight: 40,
+            ),
+            TextOverlay(
+              text: '\$ 1,000,000',
+              position:
+                  const Offset(0.95, 0.05), // 5% from right/left and bottom
+              backgroundColor: Colors.black,
+              textColor: Colors.white,
+              fontSize: 20,
+              boxWidth: 150,
+              boxHeight: 35,
+            ),
+          ];
           break;
         case 1:
-          textOverlays = {
-            'להשכרה': const Offset(0.05, 0.85),
-            'שח1,000,000': const Offset(0.8, 0.9),
-          };
- 
+          textOverlays = [
+            TextOverlay(
+              text: '\$ 1,000,000',
+              position: const Offset(0.8, 0.9),
+              backgroundColor: Colors.black,
+              textColor: Colors.white,
+              fontSize: 20,
+              boxWidth: 150,
+              boxHeight: 35,
+            ),
+          ];
+
           break;
+
         default:
-          textOverlays = {};
+          textOverlays = [];
       }
       await _initializeVideoPlayer();
 
       final processedPath =
-          await processVideoWithOverlay(videoPath, textOverlays);
+          await processVideoWithComplexOverlay(videoPath, textOverlays);
 
       if (processedPath != null) {
         setState(() {
@@ -139,7 +165,6 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
           _isProcessing = false;
         });
         throw Exception("Video processing failed");
-        
       }
     } catch (e) {
       print("Error in _processVideoWithTemplate: $e");
@@ -240,8 +265,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
                       ),
                     ],
                   )
-                else
-                  ...[
+                else ...[
                   _buildTemplateCard(
                     index: 0,
                     child: _buildTemplatePreview(isFirstTemplate: true),
