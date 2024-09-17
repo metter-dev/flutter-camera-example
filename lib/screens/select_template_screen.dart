@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_camera_example/services/process_video.dart';
 import 'package:flutter_camera_example/services/global_state.dart';
@@ -97,6 +99,31 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     }
   }
 
+  Future<String?> _getVideoPath(BuildContext context) async {
+    final appState =
+        Provider.of<AppStateModel>(context, listen: false).preferences;
+
+    if (appState.memoryMediaList.isEmpty) {
+      print("No videos available to share");
+      return null;
+    }
+
+    final videoToShare = _processedVideoPath;
+    if (videoToShare == null || videoToShare.isEmpty) {
+      print("Video file path is not available");
+      return null;
+    }
+
+    final file = File(videoToShare);
+    if (!await file.exists()) {
+      print("File does not exist: $videoToShare");
+      return null;
+    }
+
+    return videoToShare;
+  }
+
+
   Future<void> _processVideoWithTemplate(int templateIndex) async {
     setState(() {
       _isProcessing = true;
@@ -113,21 +140,21 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
             TextOverlay(
               text: 'Your Name Here',
               position:
-                  const Offset(0.05, 0.9), // 5% from left/right and bottom
+                  const Offset(0.2, 0.05),
               backgroundColor: Colors.red,
               textColor: Colors.white,
               fontSize: 24,
-              boxWidth: 200,
+              boxWidth: 800,
               boxHeight: 40,
             ),
             TextOverlay(
               text: '\$ 1,000,000',
               position:
-                  const Offset(0.95, 0.05), // 5% from right/left and bottom
+                  const Offset(0.8, 0.05), // 5% from right/left and bottom
               backgroundColor: Colors.black,
               textColor: Colors.white,
               fontSize: 20,
-              boxWidth: 150,
+              boxWidth: 750,
               boxHeight: 35,
             ),
           ];
@@ -187,6 +214,48 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     }
   }
 
+  Future<void> _shareToFacebook(BuildContext context) async {
+    final videoPath = await _getVideoPath(context);
+    if (videoPath == null) return;
+
+    try {
+      await Share.shareXFiles([XFile(videoPath)],
+          text: 'Check out this video!');
+      print("File shared successfully on Facebook");
+    } catch (e) {
+      print("Error sharing file on Facebook: $e");
+    }
+  }
+
+  Future<void> _shareToTwitter(BuildContext context) async {
+    final videoPath = await _getVideoPath(context);
+    if (videoPath == null) return;
+
+    try {
+      await Share.shareXFiles([XFile(videoPath)],
+          text: 'Check out this video!');
+      print("File shared successfully on Twitter");
+    } catch (e) {
+      print("Error sharing file on Twitter: $e");
+    }
+  }
+
+  Future<void> _shareToInstagram(BuildContext context) async {
+    final videoPath = await _getVideoPath(context);
+    if (videoPath == null) return;
+
+    // Instagram doesn't support direct video sharing via URL scheme
+    // We'll open the Instagram app, but the user will need to manually share the video
+    const instagramUrl = 'instagram://camera';
+    if (await canLaunchUrl(Uri(path: instagramUrl))) {
+      await launchUrl(Uri(path: instagramUrl));
+      print("Opened Instagram app. User needs to manually share the video.");
+    } else {
+      print("Couldn't launch Instagram app");
+    }
+  }
+
+
   Future<void> _shareToWhatsApp() async {
     shareFile(context);
   }
@@ -245,14 +314,45 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
                         child: VideoPlayer(_videoController!),
                       ),
                       const SizedBox(height: 16),
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.share),
-                        label: const Text('שיתוף בווצאפ'),
-                        onPressed: _shareToWhatsApp,
-                        style: ElevatedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.green,
-                        ),
+                      Column(
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.share),
+                            label: const Text('שיתוף בווצאפ'),
+                            onPressed: () => _shareToWhatsApp(),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.green,
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.facebook),
+                            label: const Text('שיתוף בפייסבוק'),
+                            onPressed: () => _shareToFacebook(context),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.blue,
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.telegram),
+                            label: const Text('שיתוף בטוויטר'),
+                            onPressed: () => _shareToTwitter(context),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.lightBlue,
+                            ),
+                          ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.camera_alt),
+                            label: const Text('שיתוף באינסטגרם'),
+                            onPressed: () => _shareToInstagram(context),
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              backgroundColor: Colors.purple,
+                            ),
+                          ),
+                        ],
                       ),
                       _buildTemplateCard(
                         index: 0,

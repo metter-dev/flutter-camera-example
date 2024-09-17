@@ -47,22 +47,23 @@ Future<String?> processVideoWithComplexOverlay(
       final textColor = _colorToFFmpegString(overlay.textColor);
 
       // Adjust x-coordinate for RTL if needed
-      final xPosition =
-          isRTL ? '(w-w*${overlay.position.dx})' : '(w*${overlay.position.dx})';
+      final xPosition = isRTL
+          ? '(w-w*${overlay.position.dx})-tw/2'
+          : '(w*${overlay.position.dx})-tw/2';
 
-      // Create background rectangle and text at the bottom corners
-      filterComplex += 'drawbox=x=$xPosition-${overlay.boxWidth}/2:'
-          // 'y=h-h*${overlay.position.dy}-${overlay.boxHeight}/2:'
-          'y=ih-h-45:'
-          'w=${overlay.boxWidth}:'
-          'h=${overlay.boxHeight}:'
-          'color=$bgColor@1:t=fill,'
-          'drawtext=text=\'$escapedText\':'
+      // Calculate y-coordinate for both background and text
+      final yPosition = 'h-h*${overlay.position.dy}-th/2';
+
+      // Create background rectangle and text with aligned positioning
+      filterComplex += 'drawtext=text=\'$escapedText\':'
           'fontfile=${fontFile.path}:'
           'fontcolor=$textColor:'
           'fontsize=${overlay.fontSize}:'
-          'x=$xPosition-tw/2:'
-          'y=h-h*${overlay.position.dy}-th/2';
+          'x=$xPosition:'
+          'y=$yPosition:'
+          'box=1:'
+          'boxcolor=$bgColor@1:'
+          'boxborderw=10';
 
       if (i < textOverlays.length - 1) {
         filterComplex += ',';

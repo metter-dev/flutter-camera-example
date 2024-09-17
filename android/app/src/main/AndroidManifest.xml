@@ -1,5 +1,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="nl.bartvwezel.flutter_camera_example">
+
+    <queries>
+        <!-- Query for Facebook -->
+        <package android:name="com.facebook.katana" />
+        <!-- Query for X -->
+        <package android:name="com.twitter.android" />
+        <!-- Query for LinkedIn -->
+        <package android:name="com.linkedin.android" />
+        <!-- Query for Reddit -->
+        <package android:name="com.reddit.frontpage" />
+        <!-- Query for WhatsApp -->
+        <package android:name="com.whatsapp" />
+        <!-- Query for Telegram -->
+        <package android:name="org.telegram.messenger" />
+    </queries>
+
+
+
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
@@ -7,6 +25,7 @@
         android:label="flutter_camera_example"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:largeHeap="true"
         android:requestLegacyExternalStorage="true">
         <provider
             android:name="androidx.core.content.FileProvider"

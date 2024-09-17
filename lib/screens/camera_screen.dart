@@ -135,9 +135,6 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _applyImageEnhancement() async {
-    // This is a placeholder for image enhancement
-    // In a real implementation, you would process the video file here
-    // For example, you might use FFmpeg to adjust brightness and color
     print("Applying image enhancement...");
     await Future.delayed(
         const Duration(seconds: 2)); // Simulating processing time
@@ -276,7 +273,9 @@ class _CameraScreenState extends State<CameraScreen> {
     return Scaffold(
       body: Stack(
         children: <Widget>[
-          CameraPreview(_controller),
+          Positioned.fill(
+            child: CameraPreview(_controller),
+          ),
           if (_isRecording) RecordingIndicator(duration: _recordingDuration),
           if (_isCountingDown)
             Center(
@@ -285,22 +284,48 @@ class _CameraScreenState extends State<CameraScreen> {
                 style: const TextStyle(fontSize: 100, color: Colors.white),
               ),
             ),
+
+
+
           Positioned(
             bottom: 75,
             left: MediaQuery.of(context).size.width / 2,
             child: Transform.translate(
-              offset: const Offset(-56 / 2, 0),
-              child: FloatingActionButton(
-                child: Icon(_isRecording ? Icons.stop : Icons.videocam),
-                onPressed: _isRecording
-                    ? _stopVideoRecording
-                    : (_isCountingDown ? null : _startCountdown),
-                backgroundColor: _isRecording ? Colors.red : null,
+              offset: const Offset(
+                  -52 / 2, 0), // Adjust the offset for the new button size
+              child: Container(
+                width: 52, // Increased button size
+                height: 52, // Increased button size
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.red, // Red background color
+                  border: Border.all(
+                    color: Colors.white, // Outer white border
+                    width: 5, // Increased white border size
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors
+                          .transparent, // Transparent shadow (acts as the 1px transparent border)
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: FloatingActionButton(
+                  onPressed: _isRecording
+                      ? _stopVideoRecording
+                      : (_isCountingDown ? null : _startCountdown),
+                  backgroundColor: Colors.red, // Ensure the button is also red
+
+                  elevation: 0, // Remove shadow of FloatingActionButton
+                ),
               ),
             ),
           ),
+
         ],
       ),
     );
+
   }
 }
