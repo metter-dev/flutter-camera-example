@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/screens/settings_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_camera_example/services/global_state.dart';
 import 'package:path/path.dart' as path;
@@ -157,7 +158,10 @@ class GalleryScreen extends StatelessWidget {
         ],
         onTap: (index) {
           if (index == 0) {
-            print('Navigate to Settings screen');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const SettingsScreen()),
+            );
           } else if (index == 1) {
             print('Navigate to Profile screen');
           }

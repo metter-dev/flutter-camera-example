@@ -22,7 +22,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
   VideoPlayerController? _videoController;
   bool _isProcessing = false;
 
-  @override
+@override
   void initState() {
     super.initState();
     _initializeVideoPlayer();
@@ -131,7 +131,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
               boxHeight: 35,
             ),
           ];
-          break;
+          break; 
         case 1:
           textOverlays = [
             TextOverlay(
@@ -144,9 +144,8 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
               boxHeight: 35,
             ),
           ];
-
+ 
           break;
-
         default:
           textOverlays = [];
       }
@@ -165,6 +164,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
           _isProcessing = false;
         });
         throw Exception("Video processing failed");
+        
       }
     } catch (e) {
       print("Error in _processVideoWithTemplate: $e");

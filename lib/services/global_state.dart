@@ -5,13 +5,11 @@ import 'package:path_provider/path_provider.dart';
 
 enum CameraOrientation { landscape, portrait }
 
-
 class AppState {
   CameraOrientation? selectedOrientation;
   List<String> mediaList = [];
   List<Video> memoryMediaList = [];
-
-  
+  Map<String, String> userProfile = {};
 
   void setSelectedOrientation(CameraOrientation orientation) {
     selectedOrientation = orientation;
@@ -38,6 +36,14 @@ class AppState {
 
   void clearMemoryMediaList() {
     memoryMediaList.clear();
+  }
+
+  void addProfileAttribute(String key, String value) {
+    userProfile[key] = value;
+  }
+
+  String? getProfileAttribute(String key) {
+    return userProfile[key];
   }
 }
 
@@ -70,6 +76,15 @@ class AppStateModel extends ChangeNotifier {
     _preferences.clearMemoryMediaList();
     notifyListeners();
   }
+
+  void addProfileAttribute(String key, String value) {
+    _preferences.addProfileAttribute(key, value);
+    notifyListeners();
+  }
+
+  String? getProfileAttribute(String key) {
+    return _preferences.getProfileAttribute(key);
+  }
 }
 
 class GlobalState {
@@ -97,7 +112,7 @@ class GlobalState {
 
   static List<String> getMediaList() {
     return Provider.of<AppStateModel>(_context, listen: false)
-        ._preferences
+        .preferences
         .mediaList;
   }
 
@@ -111,5 +126,13 @@ class GlobalState {
 
   static void clearMemoryMediaList() {
     _getModel().clearMemoryMediaList();
+  }
+
+  static void addProfileAttribute(String key, String value) {
+    _getModel().addProfileAttribute(key, value);
+  }
+
+  static String? getProfileAttribute(String key) {
+    return _getModel().getProfileAttribute(key);
   }
 }

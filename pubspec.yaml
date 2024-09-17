@@ -21,6 +21,9 @@ dependencies:
   url_launcher: ^6.1.10
   whatsapp_share: 2.0.2
   share_plus: 7.2.1
+  image_picker: ^0.8.7+5
+  flutter_colorpicker: ^1.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
