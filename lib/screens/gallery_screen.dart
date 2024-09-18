@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_camera_example/screens/settings_screen.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_camera_example/services/global_state.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io';
 import 'package:video_thumbnail/video_thumbnail.dart';

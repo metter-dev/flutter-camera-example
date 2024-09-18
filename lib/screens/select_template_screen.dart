@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:flutter_camera_example/services/process_video.dart';
-import 'package:flutter_camera_example/services/global_state.dart';
 import 'package:whatsapp_share/whatsapp_share.dart';
 import 'package:path/path.dart' as path;
 
@@ -134,41 +134,63 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
       final videoPath = appState.preferences.memoryMediaList.first.path;
 
       List<TextOverlay> textOverlays = [];
+      List<BoxOverlay> boxOverlays = [];
       switch (templateIndex) {
         case 0:
+          boxOverlays = [
+            BoxOverlay(
+                position: const Offset(24, 100),
+                width: ((MediaQuery.of(context).devicePixelRatio *
+                        MediaQuery.of(context).size.width) *
+                    (0.99 / 2)),
+                height: 75,
+                backgroundColor: Colors.black,
+                opacity: 0.4),
+            BoxOverlay(
+                position: const Offset(24, 175),
+                width: ((MediaQuery.of(context).devicePixelRatio *
+                            MediaQuery.of(context).size.width) *
+                        (0.99 / 2))
+                    .roundToDouble(),
+                height: 50,
+                backgroundColor: Colors.white,
+                opacity: 0.65),
+          ];
+
           textOverlays = [
             TextOverlay(
-              text: 'Your Name Here',
+              textColor: Colors.black,
+              text: 'השם שלך מופיע כאן',
               position:
-                  const Offset(0.2, 0.05),
-              backgroundColor: Colors.red,
-              textColor: Colors.white,
-              fontSize: 24,
-              boxWidth: 800,
-              boxHeight: 40,
+                  const Offset(0.225, 175),
             ),
             TextOverlay(
-              text: '\$ 1,000,000',
-              position:
-                  const Offset(0.8, 0.05), // 5% from right/left and bottom
-              backgroundColor: Colors.black,
+              textColor: Colors.black,
+              text: 'שח 1,000,000',
+              position: const Offset(0.8, 175),
+            ),
+            TextOverlay(
               textColor: Colors.white,
-              fontSize: 20,
-              boxWidth: 750,
-              boxHeight: 35,
+              text: '(617) 123-4567',
+              position: const Offset(0.8, 115),
+            ),
+            TextOverlay(
+              textColor: Colors.white,
+              text: '🛁',
+              position: const Offset(0.225, 115),
             ),
           ];
+      
+      
+      
+      
           break; 
         case 1:
           textOverlays = [
             TextOverlay(
-              text: '\$ 1,000,000',
+              text: 'שח 1,000,000',
               position: const Offset(0.8, 0.9),
-              backgroundColor: Colors.black,
               textColor: Colors.white,
-              fontSize: 20,
-              boxWidth: 150,
-              boxHeight: 35,
             ),
           ];
  
@@ -176,10 +198,13 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
         default:
           textOverlays = [];
       }
+
+      final processedPath = await processVideoWithComplexOverlay(
+          videoPath, textOverlays, boxOverlays);
+      _processedVideoPath = processedPath;
       await _initializeVideoPlayer();
 
-      final processedPath =
-          await processVideoWithComplexOverlay(videoPath, textOverlays);
+
 
       if (processedPath != null) {
         setState(() {
@@ -208,9 +233,9 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     if (_processedVideoPath != null) {
       _videoController = VideoPlayerController.file(File(_processedVideoPath!));
       await _videoController!.initialize();
-      setState(() {});
       _videoController!.play();
       _videoController!.setLooping(true);
+      setState(() {});
     }
   }
 
@@ -303,16 +328,33 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                if (_isProcessing)
-                  const Center(child: CircularProgressIndicator())
-                else if (_videoController != null &&
+                if (_videoController != null &&
                     _videoController!.value.isInitialized)
                   Column(
                     children: [
-                      AspectRatio(
+
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                            maxHeight:
+                                MediaQuery.of(context).size.height * 0.62),
+                        child: 
+                          AspectRatio(
                         aspectRatio: _videoController!.value.aspectRatio,
-                        child: VideoPlayer(_videoController!),
+                          child: _isProcessing
+                              ? const Expanded(
+                                  child: Center(
+                                      child: Stack(children: [
+                                  Expanded(
+                                      child: Center(
+                                          child: CircularProgressIndicator())),
+                                ])))
+                              : SizedBox(
+                                  height: 500,
+                                  child: VideoPlayer(_videoController!)),
+                        ),
+                      
                       ),
+                      
                       const SizedBox(height: 16),
                       Column(
                         children: [
@@ -456,7 +498,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     return GestureDetector(
       onTap: () async {
         await _processVideoWithTemplate(index);
-        setState(() => _selectedTemplateIndex = index);
+        
       },
       child: Container(
         decoration: BoxDecoration(
@@ -464,7 +506,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
             color: _selectedTemplateIndex == index
                 ? Colors.green
                 : Colors.grey[300]!,
-            width: 2,
+            width: 3,
           ),
           borderRadius: BorderRadius.circular(8),
         ),

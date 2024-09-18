@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
 import 'screens/gallery_screen.dart';
-import 'services/global_state.dart';
 
 late List<CameraDescription> cameras;
 

@@ -1,4 +1,4 @@
-import 'package:flutter_camera_example/services/global_state.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 
 class Video {
   final String path;

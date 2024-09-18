@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_camera_example/screens/camera_screen.dart';
-import 'package:flutter_camera_example/services/global_state.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
 
 
