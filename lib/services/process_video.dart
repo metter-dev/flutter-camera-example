@@ -7,6 +7,17 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
+class ImageOverlay {
+  final Offset position;
+  final double width;
+  final double height;
+
+  ImageOverlay({
+    required this.position,
+    this.width = 35,
+    this.height = 35,
+  });
+}
 class BoxOverlay {
   final Offset position;
   final Color backgroundColor;
@@ -33,11 +44,12 @@ class TextOverlay {
     required this.text,
     required this.position,
     this.textColor = Colors.white,
-    this.fontSize = 28,
+    this.fontSize = 24,
   });
 }
 
 Future<File> copyAssetToTempAndRead(String assetPath) async {
+
   // Get the temporary directory
   final tempDir = await getTemporaryDirectory();
 
@@ -66,10 +78,17 @@ Future<File> copyAssetToTempAndRead(String assetPath) async {
 
 Future<String?> processVideoWithComplexOverlay(String inputPath,
     List<TextOverlay> textOverlays, List<BoxOverlay> boxOverlays,
+    List<ImageOverlay> ImageOverlays,
+
+
     {bool isRTL = true}) async {
   try {
+
+    ImageOverlay firstImg = ImageOverlays.first;
+    // File imageFile =
+    //     await copyAssetToTempAndRead('assets/templates/1695898721386.jpeg');
     File imageFile =
-        await copyAssetToTempAndRead('assets/templates/1695898721386.jpeg');
+        await copyAssetToTempAndRead('assets/bathtab.png');
     String imagePath = imageFile.path;
 
     final Directory tempDir = await getTemporaryDirectory();
@@ -99,9 +118,9 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
 
     List<String> filters = [];
     filters.add('[0:v]scale=$width:$height,setsar=1[video]');
-    filters.add('[1:v]scale=25:25[icon]');
+    filters.add('[1:v]scale=50:50[icon]');
     filters.add(
-        '[video][icon]overlay=10:10[img_overlay]'); // Position the icon at (10,10)
+        '[video][icon]overlay=${firstImg.position.dx}:${firstImg.position.dy}[img_overlay]'); // Position the icon at (10,10)
 
     String lastOutput = 'img_overlay';
 
@@ -125,7 +144,7 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
       final escapedText = _escapeTextForFFmpeg(overlay.text);
       final textColor = _colorToFFmpegString(overlay.textColor);
 
-      const boxWidth = 700;
+      const boxWidth = 300;
       const xOffset = 0;
 
       final xPosition = isRTL
@@ -183,9 +202,6 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
     return null;
   }
 }
-
-
-
 
 
 

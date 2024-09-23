@@ -136,34 +136,37 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
       List<TextOverlay> textOverlays = [];
       List<BoxOverlay> boxOverlays = [];
 
+      double w = MediaQuery.of(context).size.width;
+      double h = MediaQuery.of(context).size.height;
+      double pixelRatio = MediaQuery.of(context).devicePixelRatio;
+
+      double detailsXOffset = 0.1;
+
+      double footerLeftMargin = ((w * pixelRatio) - (w * pixelRatio * 0.9)) / 2;
+
       // List<ImageOverlay> imageOverlays = [];
       switch (templateIndex) {
         case 0:
-          // imageOverlays = [
-          //   ImageOverlay(
-          //       assetPath: 'assets/templates/1695898721386.jpeg',
-          //       position: const Offset(24, 100),
-          //       width: 50,
-          //       height: 50)
-          // ];
           boxOverlays = [
             BoxOverlay(
-                position: const Offset(24, 100),
-                width: ((MediaQuery.of(context).devicePixelRatio *
-                        MediaQuery.of(context).size.width) *
-                    (0.99 / 2)),
+                position: Offset(footerLeftMargin, 100),
+                width: ((pixelRatio * w) * (0.9)),
                 height: 75,
                 backgroundColor: Colors.black,
                 opacity: 0.4),
             BoxOverlay(
-                position: const Offset(24, 175),
-                width: ((MediaQuery.of(context).devicePixelRatio *
-                            MediaQuery.of(context).size.width) *
-                        (0.99 / 2))
+                position: Offset(footerLeftMargin, 175),
+                width: ((pixelRatio * w) * (0.9))
                     .roundToDouble(),
                 height: 50,
                 backgroundColor: Colors.white,
                 opacity: 0.65),
+            BoxOverlay(
+              position: Offset(w * pixelRatio * (1 - detailsXOffset) - 85, 125),
+              width: 75,
+              height: 25,
+              backgroundColor: Colors.red,
+            )
           ];
 
           textOverlays = [
@@ -171,7 +174,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
               textColor: Colors.black,
               text: 'השם שלך מופיע כאן',
               position:
-                  const Offset(0.225, 175),
+                   Offset(detailsXOffset + 0.05, 175),
             ),
             TextOverlay(
               textColor: Colors.black,
@@ -185,8 +188,8 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
             ),
             TextOverlay(
               textColor: Colors.white,
-              text: '🛁',
-              position: const Offset(0.225, 115),
+              text: '1234',
+              position: Offset(detailsXOffset, 115),
             ),
           ];
       
@@ -209,7 +212,11 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
       }
 
       final processedPath = await processVideoWithComplexOverlay(
-          videoPath, textOverlays, boxOverlays);
+          videoPath, textOverlays, boxOverlays, [
+        ImageOverlay(
+            position: Offset(w * pixelRatio * (1 - detailsXOffset) - 145,
+                (h) - (h * 3 * detailsXOffset) - 125))
+      ]);
       _processedVideoPath = processedPath;
       await _initializeVideoPlayer();
 
@@ -344,24 +351,16 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
 
                       ConstrainedBox(
                         constraints: BoxConstraints(
-                            maxHeight:
-                                MediaQuery.of(context).size.height * 0.62),
-                        child: 
-                          AspectRatio(
-                        aspectRatio: _videoController!.value.aspectRatio,
-                          child: _isProcessing
-                              ? const Expanded(
-                                  child: Center(
-                                      child: Stack(children: [
-                                  Expanded(
-                                      child: Center(
-                                          child: CircularProgressIndicator())),
-                                ])))
-                              : SizedBox(
-                                  height: 500,
-                                  child: VideoPlayer(_videoController!)),
+                          maxHeight: MediaQuery.of(context).size.height * 0.62,
                         ),
-                      
+                        child: _isProcessing
+                            ? const Center(
+                                child: CircularProgressIndicator(),
+                              )
+                            : AspectRatio(
+                                aspectRatio:
+                                    _videoController!.value.aspectRatio,
+                                child: VideoPlayer(_videoController!)),
                       ),
                       
                       const SizedBox(height: 16),
