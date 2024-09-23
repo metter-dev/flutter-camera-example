@@ -11,7 +11,7 @@ Future<CameraController> initializeCamera(
   final controller = CameraController(
     camera,
     ResolutionPreset.high,
-    enableAudio: true,
+    enableAudio: false,
   );
   await controller.initialize();
   await controller.lockCaptureOrientation(DeviceOrientation.portraitUp);

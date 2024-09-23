@@ -188,7 +188,7 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+Widget build(BuildContext context) {
     if (!_controller.value.isInitialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -197,7 +197,18 @@ class _CameraScreenState extends State<CameraScreen> {
       return Scaffold(
         body: Stack(
           children: [
-            VideoPlayer(_videoPlayerController),
+            Positioned.fill(
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: SizedBox(
+                  width: _videoPlayerController.value.size.height,
+                  height: _videoPlayerController.value.size.width,
+                  child: Transform.rotate(
+                      angle: 90 * 3.1415926 / 180,
+                      child: VideoPlayer(_videoPlayerController)),
+                ),
+              ),
+            ),
             Positioned(
               top: 40,
               left: 20,
@@ -269,6 +280,7 @@ class _CameraScreenState extends State<CameraScreen> {
         ),
       );
     }
+
 
     return Scaffold(
       body: Stack(

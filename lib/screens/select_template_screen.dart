@@ -135,8 +135,17 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
 
       List<TextOverlay> textOverlays = [];
       List<BoxOverlay> boxOverlays = [];
+
+      // List<ImageOverlay> imageOverlays = [];
       switch (templateIndex) {
         case 0:
+          // imageOverlays = [
+          //   ImageOverlay(
+          //       assetPath: 'assets/templates/1695898721386.jpeg',
+          //       position: const Offset(24, 100),
+          //       width: 50,
+          //       height: 50)
+          // ];
           boxOverlays = [
             BoxOverlay(
                 position: const Offset(24, 100),
