@@ -157,6 +157,8 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
               position: Offset(w * pixelRatio * (1 - detailsXOffset) - 145,
                   (h) - (h * 3 * detailsXOffset) - 125))
         ],
+          isRTL: true,
+          loopingSoundPath: 'assets/audio/background1.mp3'
       );
 
       if (!mounted) return;

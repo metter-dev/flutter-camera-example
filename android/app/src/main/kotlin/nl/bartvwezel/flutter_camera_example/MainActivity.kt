@@ -1,4 +1,4 @@
-package nl.bartvwezel.flutter_camera_example
+package nal.bartvwezel.flutter_camera_example
 
 import io.flutter.embedding.android.FlutterActivity
 

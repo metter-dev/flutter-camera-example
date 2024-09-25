@@ -76,19 +76,16 @@ Future<File> copyAssetToTempAndRead(String assetPath) async {
   return tempFile;
 }
 
-Future<String?> processVideoWithComplexOverlay(String inputPath,
-    List<TextOverlay> textOverlays, List<BoxOverlay> boxOverlays,
+Future<String?> processVideoWithComplexOverlay(
+    String inputPath,
+    List<TextOverlay> textOverlays,
+    List<BoxOverlay> boxOverlays,
     List<ImageOverlay> ImageOverlays,
-
-
-    {bool isRTL = true}) async {
+    {bool isRTL = true,
+    String? loopingSoundPath}) async {
   try {
-
     ImageOverlay firstImg = ImageOverlays.first;
-    // File imageFile =
-    //     await copyAssetToTempAndRead('assets/templates/1695898721386.jpeg');
-    File imageFile =
-        await copyAssetToTempAndRead('assets/bathtab.png');
+    File imageFile = await copyAssetToTempAndRead('assets/bathtab.png');
     String imagePath = imageFile.path;
 
     final Directory tempDir = await getTemporaryDirectory();
@@ -118,12 +115,9 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
 
     List<String> filters = [];
     filters.add('[0:v]scale=$width:$height,setsar=1[video]');
-    // filters.add('[0:v]transpose=1[rotated]');
-    // filters.add('[rotated]scale=$width:$height,setsar=1[video]');
-
     filters.add('[1:v]scale=50:50[icon]');
     filters.add(
-        '[video][icon]overlay=${firstImg.position.dx}:${firstImg.position.dy}[img_overlay]'); // Position the icon at (10,10)
+        '[video][icon]overlay=${firstImg.position.dx}:${firstImg.position.dy}[img_overlay]');
 
     String lastOutput = 'img_overlay';
 
@@ -169,16 +163,31 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
 
     final audioProbeResult = await FFprobeKit.execute(
         '-i $inputPath -show_streams -select_streams a -loglevel error');
-    final hasAudio = (await audioProbeResult.getOutput())?.isNotEmpty ?? false;
+    final hasOriginalAudio =
+        (await audioProbeResult.getOutput())?.isNotEmpty ?? false;
 
-    String audioMapping = hasAudio ? '-map 0:a' : '';
+    String audioMapping = '';
+    String audioMixing = '';
 
-    final command = '-i $inputPath -i $imagePath '
+    if (loopingSoundPath != null) {
+      audioMapping += ' -stream_loop -1 -i "$loopingSoundPath"';
+
+      if (hasOriginalAudio) {
+        audioMixing =
+            '-filter_complex "[0:a][2:a]amix=inputs=2:duration=longest[aout]" -map "[aout]"';
+      } else {
+        audioMapping += ' -map 2:a';
+      }
+    } else if (hasOriginalAudio) {
+      audioMapping += ' -map 0:a';
+    }
+
+    final command = '-i $inputPath -i $imagePath $audioMapping '
         '-filter_complex "$filterComplex" '
         '-map "[$lastOutput]" '
-        '$audioMapping '
+        '$audioMixing '
         '-c:v mpeg4 '
-        '${hasAudio ? '-c:a aac -b:a 128k' : ''} '
+        '-c:a aac -b:a 128k '
         '-r $targetFrameRate '
         '-pix_fmt yuv420p '
         '-max_muxing_queue_size 1024 '
@@ -205,8 +214,6 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
     return null;
   }
 }
-
-
 
 
 
