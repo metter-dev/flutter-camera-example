@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/screens/video_settings_screen.dart';
 
 import 'settings_screen__user_profile__1.dart';
 
@@ -62,11 +63,22 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  Widget getScreen(String title) {
+    if (title == 'הגדרות וידאו') {
+      return const VideoSettingsScreen();
+    }
+
+    return const ProfileSettingsScreen();
+  }
+
   Widget _buildSettingItem(IconData icon, String title, context) {
     return GestureDetector(
       onTap: () => {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const ProfileSettingsScreen()),
+          
+          
+          
+          MaterialPageRoute(builder: (_) => getScreen(title)),
         )
       },
       child: Padding(

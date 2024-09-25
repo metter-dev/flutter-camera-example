@@ -118,6 +118,9 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
 
     List<String> filters = [];
     filters.add('[0:v]scale=$width:$height,setsar=1[video]');
+    // filters.add('[0:v]transpose=1[rotated]');
+    // filters.add('[rotated]scale=$width:$height,setsar=1[video]');
+
     filters.add('[1:v]scale=50:50[icon]');
     filters.add(
         '[video][icon]overlay=${firstImg.position.dx}:${firstImg.position.dy}[img_overlay]'); // Position the icon at (10,10)
