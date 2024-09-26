@@ -261,19 +261,13 @@ Widget build(BuildContext context) {
                     children: [
                       ElevatedButton(
                         onPressed: _reshootVideo,
-                        child: const Text(
-                          'צילום מחדש',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        child: const Text('Reshoot'),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey),
                       ),
                       ElevatedButton(
                         onPressed: _saveVideo,
-                        child: const Text(
-                          'אישור',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        child: const Text('Done'),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green),
                       ),
