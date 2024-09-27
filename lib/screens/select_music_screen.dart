@@ -14,12 +14,26 @@ class _SelectMusicScreenState extends State<SelectMusicScreen> {
   String _selectedMusic = 'בלי מוזיקה'; // Default selection
   final List<String> _genres = ['הכל', 'אקוסטי', "צ'יל", 'קלאסי', 'אלקטרוני'];
   final List<Map<String, String>> _musicList = [
-    {'title': 'בלי מוזיקה', 'genre': 'אחר'},
-    {'title': 'Lounge Lullabies', 'genre': 'Lounge'},
-    {'title': 'Neon Waves', 'genre': 'Chill'},
-    {'title': 'Sway & Samba', 'genre': 'Latin'},
-    {'title': 'Love Aside', 'genre': 'Electronic'},
-    {'title': "Samson's Gallop", 'genre': 'Acoustic'},
+    {
+      'title': 'בלי מוזיקה',
+      'genre': 'אחר',
+      'assetPath': 'assets/audio/silence.mp3'
+    },
+    {
+      'title': '1 שיר רקע',
+      'genre': 'פופ',
+      'assetPath': 'assets/audio/background1.mp3'
+    },
+    {
+      'title': 'שיר רקע 2',
+      'genre': "צ'יל",
+      'assetPath': 'assets/audio/background2.mp3'
+    },
+    {
+      'title': 'שיר רקע ראפ',
+      'genre': 'ראפ',
+      'assetPath': 'assets/audio/rapbackground.mp3'
+    },
   ];
 
   @override
@@ -105,6 +119,7 @@ class _SelectMusicScreenState extends State<SelectMusicScreen> {
                         .map((music) => _buildMusicItem(
                               music['title']!,
                               music['genre']!,
+                              music['assetPath']!,
                               isSelected: music['title'] == _selectedMusic,
                             ))
                         .toList(),
@@ -118,7 +133,7 @@ class _SelectMusicScreenState extends State<SelectMusicScreen> {
     );
   }
 
-  Widget _buildMusicItem(String title, String genre,
+  Widget _buildMusicItem(String title, String genre, String assetPath,
       {bool isSelected = false}) {
     return ListTile(
       leading: const Icon(Icons.play_arrow),
@@ -130,7 +145,7 @@ class _SelectMusicScreenState extends State<SelectMusicScreen> {
         borderRadius: BorderRadius.circular(8),
       ),
       onTap: () {
-        GlobalState.addProfileAttribute("music", title);
+        GlobalState.addProfileAttribute("music", assetPath);
         setState(() {
           _selectedMusic = title;
         });

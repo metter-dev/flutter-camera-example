@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_full/ffprobe_kit.dart';
-import 'package:ffmpeg_kit_flutter_full/return_code.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_min_gpl/return_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -50,6 +50,10 @@ class TextOverlay {
 }
 
 Future<File> copyAssetToTempAndRead(String assetPath) async {
+  if (assetPath == '') {
+    return File('');
+  }
+
   // Get the temporary directory
   final tempDir = await getTemporaryDirectory();
 
@@ -83,13 +87,19 @@ Future<String?> processVideoWithComplexOverlay(
     List<ImageOverlay> ImageOverlays,
     {bool isRTL = true}) async {
   try {
-    ImageOverlay firstImg = ImageOverlays.first;
-    // File imageFile =
-    //     await copyAssetToTempAndRead('assets/templates/1695898721386.jpeg');
-    File imageFile = await copyAssetToTempAndRead('assets/bathtab.png');
-    String imagePath = imageFile.path;
 
-    File audio = await copyAssetToTempAndRead('assets/audio/background1.mp3');
+    print("testing what the state is");
+
+    dynamic userMusicChoice = GlobalState.getProfileAttribute('music');
+
+    print("The music file: " + userMusicChoice == null
+        ? 'no music selected'
+        : userMusicChoice.toString());
+
+    File imageFile = await copyAssetToTempAndRead('assets/bathtab.png');
+    String imageOverlayPath = imageFile.path;
+
+    File audio = await copyAssetToTempAndRead(userMusicChoice);
     String audioPath = audio.path;
 
     final Directory tempDir = await getTemporaryDirectory();
@@ -100,95 +110,36 @@ Future<String?> processVideoWithComplexOverlay(
     final fontFile = File('${tempDir.path}/Rubik-Regular.ttf');
     await fontFile.writeAsBytes(fontBytes.buffer.asUint8List());
 
-    final probeResult = await FFprobeKit.execute(
-        '-v error -select_streams v:0 -count_packets -show_entries stream=width,height,r_frame_rate,nb_read_packets -of csv=p=0 $inputPath');
-    final probeOutput = await probeResult.getOutput();
-    final videoInfo = probeOutput?.trim().split(',');
+double marginPercentage = 0.05;
+    double boxWidthPercentage = 0.9;
+    int boxHeight = 65;
+    double blackBoxYPercentage = 0.95;
+    double whiteBoxYPercentage = 0.95;
+    int redBoxSize = 50;
+    int imageOverlayWidth = 48;
+    double textYOffset = boxHeight * 1.5 + 7;
+    int fontSize = 28;
+    int redBoxTextSize = 20;
 
-    if (videoInfo == null || videoInfo.length < 4) {
-      throw Exception('Failed to get video information');
-    }
+String ffmpegCommand =
+        '-i "$inputPath" -i "$imageOverlayPath" -i "$audioPath" -filter_complex "'
+        '[0:v]drawbox=x=iw*$marginPercentage:y=ih*$blackBoxYPercentage-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=black@0.75:t=fill[black_rect];'
+        '[black_rect]drawbox=x=iw*$marginPercentage:y=ih*$whiteBoxYPercentage-$boxHeight-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=white@0.75:t=fill[white_rect];'
+        '[white_rect]drawtext=fontfile=${fontFile.path.replaceAll("'", "'\\''").replaceAll('\\', '\\\\')}:'
+        'text=\'השם שלך כאן\':fontcolor=black:fontsize=$fontSize:x=w*$marginPercentage+7:y=h*$whiteBoxYPercentage-$textYOffset:box=1:boxcolor=white@0:boxborderw=5[text_rect];'
+        '[text_rect]drawbox=x=iw*(1-$marginPercentage*1.5)-$redBoxSize*2:y=ih*$blackBoxYPercentage-$redBoxSize-7:w=$redBoxSize*2:h=$redBoxSize:color=red:t=fill[red_box];'
+        '[red_box]drawtext=fontfile=${fontFile.path.replaceAll("'", "'\\''").replaceAll('\\', '\\\\')}:'
+        'text=\'1234\':fontcolor=white:fontsize=$redBoxTextSize*1.5:x=(w-$redBoxSize*4)+$redBoxSize+14:y=h*$blackBoxYPercentage-$redBoxSize/2-7-7:box=0:boxcolor=white@0:boxborderw=0:shadowcolor=black@0.5:shadowx=1:shadowy=1[red_box_text];'
+        '[1:v]scale=$imageOverlayWidth:-1[scaled_img];'
+        '[red_box_text][scaled_img]overlay=x=W*(1-$marginPercentage*4.5)-$imageOverlayWidth:y=H*$blackBoxYPercentage-7-h[overlay_final];'
+        '[overlay_final]colorlevels=rimin=0:gimin=0:bimin=0:rimax=0.95:gimax=0.95:bimax=0.95:romin=0:gomin=0:bomin=0:romax=1:gomax=1:bomax=1[levels];'
+        '[levels]vibrance=intensity=0.3:rbal=1:gbal=1:bbal=1[vibrant];'
+        '[vibrant]unsharp=luma_msize_x=5:luma_msize_y=5:luma_amount=1.1[sharpened];'
+        '[sharpened]hue=s=1.05:b=1.01[final]'
+        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 1 -c:a aac -r 60 "$outputPath"';
 
-    final width = int.parse(videoInfo[0]);
-    final height = int.parse(videoInfo[1]);
-    final frameRateParts = videoInfo[2].split('/');
-    final frameRate =
-        double.parse(frameRateParts[0]) / double.parse(frameRateParts[1]);
-
-    final targetFrameRate = frameRate > 30 ? 30 : frameRate;
-
-    List<String> filters = [];
-    filters.add('[0:v]scale=$width:$height,setsar=1[video]');
-
-    filters.add('[1:v]scale=50:50[icon]');
-    filters.add(
-        '[video][icon]overlay=${firstImg.position.dx}:${firstImg.position.dy}[img_overlay]'); // Position the icon at (10,10)
-
-    String lastOutput = 'img_overlay';
-
-    for (int i = 0; i < boxOverlays.length; i++) {
-      BoxOverlay box = boxOverlays[i];
-      double xPosition = box.position.dx;
-      double yPosition = box.position.dy;
-      double boxWidth = box.width;
-      double boxHeight = box.height;
-      String backgroundColor = _colorToFFmpegString(box.backgroundColor);
-
-      String currentOutput = 'box$i';
-      filters.add('[$lastOutput]drawbox=x=$xPosition:y=ih-h-$yPosition:'
-          'w=$boxWidth:h=$boxHeight:'
-          'color=$backgroundColor@${box.opacity}:t=fill[$currentOutput]');
-      lastOutput = currentOutput;
-    }
-
-    for (int i = 0; i < textOverlays.length; i++) {
-      final overlay = textOverlays[i];
-      final escapedText = _escapeTextForFFmpeg(overlay.text);
-      final textColor = _colorToFFmpegString(overlay.textColor);
-
-      const boxWidth = 300;
-      const xOffset = 0;
-
-      final xPosition = isRTL
-          ? '(w-w*${overlay.position.dx})-$boxWidth/2+$xOffset'
-          : '(w*${overlay.position.dx})-$boxWidth/2+$xOffset';
-      final yPosition = 'h-${overlay.fontSize * 1.25}-${overlay.position.dy}';
-
-      String currentOutput = 'text$i';
-      filters.add('[$lastOutput]drawtext=text=\'$escapedText\':'
-          'fontfile=${fontFile.path}:'
-          'fontsize=${overlay.fontSize}:'
-          'fontcolor=$textColor:'
-          'x=$xPosition+($boxWidth-tw)/2:'
-          'y=$yPosition[$currentOutput]');
-      lastOutput = currentOutput;
-    }
-
-    String filterComplex = filters.join(';');
-
-    final audioProbeResult = await FFprobeKit.execute(
-        '-i $inputPath -show_streams -select_streams a -loglevel error');
-    final hasAudio = (await audioProbeResult.getOutput())?.isNotEmpty ?? false;
-
-    String audioMapping = hasAudio ? '-map 0:a' : '';
-
-    print("last output for map: ");
-    print(lastOutput);
-
-    final command = '-i $inputPath -i $imagePath -i $audioPath '
-        '-filter_complex "$filterComplex" '
-        '-map "[$lastOutput]" '
-        '$audioMapping '
-        '-c:v mpeg4 '
-        '-map 2:a '
-        '-r $targetFrameRate '
-        '-pix_fmt yuv420p '
-        '-max_muxing_queue_size 1024 '
-        '$outputPath';
-
-    print("FFmpeg command: $command");
-
-    final session = await FFmpegKit.execute(command);
+        
+    final session = await FFmpegKit.execute(ffmpegCommand);
     final returnCode = await session.getReturnCode();
 
     if (ReturnCode.isSuccess(returnCode)) {
@@ -206,22 +157,4 @@ Future<String?> processVideoWithComplexOverlay(
     print("Exception during video processing: $e");
     return null;
   }
-}
-
-String _escapeTextForFFmpeg(String text) {
-  return text.replaceAll("'", "'\\''");
-}
-
-String _colorToFFmpegString(Color color) {
-  // Extract individual color components
-  int red = color.red;
-  int green = color.green;
-  int blue = color.blue;
-  int alpha = color.alpha;
-
-  // Format the color string in the order expected by FFmpeg
-  return '0x${red.toRadixString(16).padLeft(2, '0')}'
-      '${green.toRadixString(16).padLeft(2, '0')}'
-      '${blue.toRadixString(16).padLeft(2, '0')}'
-      '${alpha.toRadixString(16).padLeft(2, '0')}';
 }

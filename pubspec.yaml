@@ -17,7 +17,9 @@ dependencies:
   video_player: ^2.6.0
   video_thumbnail: ^0.5.3
   provider: ^6.0.5
-  ffmpeg_kit_flutter_full: ^5.1.0
+  # ffmpeg_kit_flutter_full: ^5.1.0
+  ffmpeg_kit_flutter_min_gpl: ^6.0.3
+
   url_launcher: ^6.1.10
   whatsapp_share: 2.0.2
   share_plus: 7.2.1

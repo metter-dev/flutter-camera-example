@@ -9,7 +9,7 @@ class AppState {
   CameraOrientation? selectedOrientation;
   List<String> mediaList = [];
   List<Video> memoryMediaList = [];
-  Map<String, String> userProfile = {};
+  Map<String, String> userProfile = {"music": "assets/audio/silence.mp3"};
 
   void setSelectedOrientation(CameraOrientation orientation) {
     selectedOrientation = orientation;
@@ -89,6 +89,10 @@ class AppStateModel extends ChangeNotifier {
 
 class GlobalState {
   static late BuildContext _context;
+
+static dynamic getState() {
+    return _getModel();
+  }
 
   static void init(BuildContext context) {
     _context = context;
