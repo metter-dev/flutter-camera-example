@@ -18,6 +18,7 @@ class ImageOverlay {
     this.height = 35,
   });
 }
+
 class BoxOverlay {
   final Offset position;
   final Color backgroundColor;
@@ -49,7 +50,6 @@ class TextOverlay {
 }
 
 Future<File> copyAssetToTempAndRead(String assetPath) async {
-
   // Get the temporary directory
   final tempDir = await getTemporaryDirectory();
 
@@ -76,20 +76,21 @@ Future<File> copyAssetToTempAndRead(String assetPath) async {
   return tempFile;
 }
 
-Future<String?> processVideoWithComplexOverlay(String inputPath,
-    List<TextOverlay> textOverlays, List<BoxOverlay> boxOverlays,
+Future<String?> processVideoWithComplexOverlay(
+    String inputPath,
+    List<TextOverlay> textOverlays,
+    List<BoxOverlay> boxOverlays,
     List<ImageOverlay> ImageOverlays,
-
-
     {bool isRTL = true}) async {
   try {
-
     ImageOverlay firstImg = ImageOverlays.first;
     // File imageFile =
     //     await copyAssetToTempAndRead('assets/templates/1695898721386.jpeg');
-    File imageFile =
-        await copyAssetToTempAndRead('assets/bathtab.png');
+    File imageFile = await copyAssetToTempAndRead('assets/bathtab.png');
     String imagePath = imageFile.path;
+
+    File audio = await copyAssetToTempAndRead('assets/audio/background1.mp3');
+    String audioPath = audio.path;
 
     final Directory tempDir = await getTemporaryDirectory();
     final String outputPath =
@@ -118,8 +119,6 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
 
     List<String> filters = [];
     filters.add('[0:v]scale=$width:$height,setsar=1[video]');
-    // filters.add('[0:v]transpose=1[rotated]');
-    // filters.add('[rotated]scale=$width:$height,setsar=1[video]');
 
     filters.add('[1:v]scale=50:50[icon]');
     filters.add(
@@ -173,12 +172,15 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
 
     String audioMapping = hasAudio ? '-map 0:a' : '';
 
-    final command = '-i $inputPath -i $imagePath '
+    print("last output for map: ");
+    print(lastOutput);
+
+    final command = '-i $inputPath -i $imagePath -i $audioPath '
         '-filter_complex "$filterComplex" '
         '-map "[$lastOutput]" '
         '$audioMapping '
         '-c:v mpeg4 '
-        '${hasAudio ? '-c:a aac -b:a 128k' : ''} '
+        '-map 2:a '
         '-r $targetFrameRate '
         '-pix_fmt yuv420p '
         '-max_muxing_queue_size 1024 '
@@ -205,49 +207,6 @@ Future<String?> processVideoWithComplexOverlay(String inputPath,
     return null;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 String _escapeTextForFFmpeg(String text) {
   return text.replaceAll("'", "'\\''");

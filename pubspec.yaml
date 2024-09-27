@@ -38,5 +38,6 @@ flutter:
   assets:
     - assets/
     - assets/templates/    
+    - assets/audio/
     - assets/fonts/Roboto-Regular.ttf
     - assets/fonts/Rubik-Regular.ttf
