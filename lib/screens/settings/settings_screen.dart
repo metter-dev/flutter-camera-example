@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/video_settings_screen.dart';
+import 'package:flutter_camera_example/screens/settings/video_settings_screen.dart';
 
-import 'settings_screen__user_profile__1.dart';
+import 'user-profile/step_1.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -75,9 +75,6 @@ class SettingsScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () => {
         Navigator.of(context).pushReplacement(
-          
-          
-          
           MaterialPageRoute(builder: (_) => getScreen(title)),
         )
       },

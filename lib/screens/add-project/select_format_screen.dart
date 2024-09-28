@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/final_result_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/final_result_screen.dart';
 
 class SelectFormatScreen extends StatefulWidget {
   const SelectFormatScreen({Key? key}) : super(key: key);

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/settings_screen__user_profile__2.dart';
+import 'package:flutter_camera_example/screens/settings/user-profile/step_2.dart';
 
 class ProfileSettingsScreen extends StatelessWidget {
   const ProfileSettingsScreen({Key? key}) : super(key: key);

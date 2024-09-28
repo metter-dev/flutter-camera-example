@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/camera_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/camera_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
-
 
 class OrientationSelectionScreen extends StatelessWidget {
   const OrientationSelectionScreen({Key? key}) : super(key: key);
@@ -14,7 +13,7 @@ class OrientationSelectionScreen extends StatelessWidget {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         elevation: 0,
-leading: TextButton(
+        leading: TextButton(
           style: TextButton.styleFrom(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(0),
@@ -100,6 +99,7 @@ leading: TextButton(
     );
   }
 }
+
 class _OrientationOption extends StatelessWidget {
   final IconData icon;
   final String label;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/select_music_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/select_music_screen.dart';
 
 class AddListingDetailsScreen extends StatelessWidget {
   const AddListingDetailsScreen({Key? key}) : super(key: key);

@@ -2,14 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_camera_example/classes/video.dart';
-import 'package:flutter_camera_example/screens/orientation_selection_screen.dart';
-import 'package:flutter_camera_example/screens/select_template_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/orientation_selection_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/select_template_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_camera_example/screens/camera_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/camera_screen.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'dart:typed_data';
 import 'package:video_player/video_player.dart';
+
 class AddVideosScreen extends StatelessWidget {
   const AddVideosScreen({Key? key}) : super(key: key);
 
@@ -35,8 +36,7 @@ class AddVideosScreen extends StatelessWidget {
             ),
             actions: [
               TextButton(
-                child:
-                    const Text('הבא', style: TextStyle(color: Colors.green)),
+                child: const Text('הבא', style: TextStyle(color: Colors.green)),
                 onPressed: () {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
@@ -103,8 +103,6 @@ class AddVideosScreen extends StatelessWidget {
     );
   }
 }
-
-
 
 class VideoCard extends StatefulWidget {
   final Video videoObject;
@@ -224,7 +222,7 @@ class _VideoCardState extends State<VideoCard> {
         ),
         Padding(
           padding: const EdgeInsets.only(top: 4.0),
-          child: Text( 
+          child: Text(
             'ש${widget.videoObject.duration.inSeconds}',
             style: const TextStyle(color: Colors.black54),
           ),
@@ -233,6 +231,7 @@ class _VideoCardState extends State<VideoCard> {
     );
   }
 }
+
 class AddMoreCard extends StatelessWidget {
   final VoidCallback onTap;
 

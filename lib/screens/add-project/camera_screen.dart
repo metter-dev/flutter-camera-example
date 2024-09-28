@@ -1,18 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_camera_example/classes/video.dart';
-import 'package:flutter_camera_example/screens/add_videos_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/add_videos_screen.dart';
 import 'package:flutter_camera_example/services/process_video.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 import 'package:path_provider/path_provider.dart';
-import '../widgets/recording_indicator.dart';
-import '../utils/camera_utils.dart';
-import '../main.dart';
+import '../../widgets/recording_indicator.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({Key? key}) : super(key: key);
@@ -35,6 +32,7 @@ class _CameraScreenState extends State<CameraScreen>
   VideoPlayerController? _videoPlayerController;
   double _currentPosition = 0.0;
   bool _isCameraReady = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -154,6 +152,10 @@ class _CameraScreenState extends State<CameraScreen>
     }
 
     try {
+      setState(() {
+        _isLoading = true;
+      });
+
       XFile videoFile = await _controller!.stopVideoRecording();
       await videoFile.saveTo(_videoPath);
       _recordingTimer?.cancel();
@@ -168,6 +170,7 @@ class _CameraScreenState extends State<CameraScreen>
       setState(() {
         _isRecording = false;
         _isReviewing = true;
+        _isLoading = false;
       });
 
       Timer.periodic(const Duration(milliseconds: 200), (timer) {
@@ -210,7 +213,7 @@ class _CameraScreenState extends State<CameraScreen>
     appState.memoryAddMedia(videoObject);
     appState.addMedia(_videoPath);
 
-    Navigator.of(context).pushReplacement(
+    Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => const AddVideosScreen()),
     );
   }
@@ -260,6 +263,15 @@ class _CameraScreenState extends State<CameraScreen>
                   ),
                 ),
               _buildCaptureButton(),
+              if (_isLoading)
+                Container(
+                  color: Colors.black.withOpacity(0.5),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                ),
             ],
           );
         },
@@ -295,7 +307,7 @@ class _CameraScreenState extends State<CameraScreen>
             color: Colors.red,
             border: Border.all(
               color: Colors.white,
-              width: 5,
+              width: 1.5,
             ),
             boxShadow: const [
               BoxShadow(
@@ -305,13 +317,14 @@ class _CameraScreenState extends State<CameraScreen>
             ],
           ),
           child: FloatingActionButton(
+            shape: const CircleBorder(),
             onPressed: _isRecording
                 ? _stopVideoRecording
                 : (_isCountingDown ? null : _startCountdown),
             backgroundColor: Colors.red,
             elevation: 0,
             child: Icon(
-              _isRecording ? Icons.stop : Icons.fiber_manual_record,
+              _isRecording ? Icons.stop : Icons.play_arrow,
               color: Colors.white,
             ),
           ),

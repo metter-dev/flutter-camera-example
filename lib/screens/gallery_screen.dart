@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/settings_screen.dart';
+import 'package:flutter_camera_example/screens/settings/settings_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
 import 'package:path/path.dart' as path;
 import 'dart:io';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'media_view_screen.dart';
-import 'orientation_selection_screen.dart';
+import 'add-project/orientation_selection_screen.dart';
 
 class GalleryScreen extends StatelessWidget {
   const GalleryScreen({Key? key}) : super(key: key);

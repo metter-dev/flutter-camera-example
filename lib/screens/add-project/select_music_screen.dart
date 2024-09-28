@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/select_format_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/select_format_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 
 class SelectMusicScreen extends StatefulWidget {

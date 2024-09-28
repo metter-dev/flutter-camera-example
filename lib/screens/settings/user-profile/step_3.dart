@@ -3,9 +3,9 @@ import 'package:flutter_camera_example/screens/gallery_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import '../widgets/colorpicker.dart';
-import '../widgets/dropdown.dart';
-import '../widgets/tooltiptextfield.dart';
+import '../../../widgets/colorpicker.dart';
+import '../../../widgets/dropdown.dart';
+import '../../../widgets/tooltiptextfield.dart';
 
 class PreviewSettingsScreen extends StatefulWidget {
   const PreviewSettingsScreen({Key? key}) : super(key: key);

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/settings_screen__user_profile__3.dart';
+import 'package:flutter_camera_example/screens/settings/user-profile/step_3.dart';
 import 'package:flutter_camera_example/widgets/dropdown.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import '../widgets/tooltiptextfield.dart';
+import '../../../widgets/tooltiptextfield.dart';
 
 class ProfileSettingsPage extends StatefulWidget {
   const ProfileSettingsPage({Key? key}) : super(key: key);
