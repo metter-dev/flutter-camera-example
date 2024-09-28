@@ -1,6 +1,6 @@
 import 'dart:io';
-import 'package:ffmpeg_kit_flutter_min_gpl/ffmpeg_kit.dart';
-import 'package:ffmpeg_kit_flutter_min_gpl/return_code.dart';
+import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_full/return_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
@@ -80,11 +80,65 @@ Future<File> copyAssetToTempAndRead(String assetPath) async {
   return tempFile;
 }
 
+Future<String> _getOutputPath(tempDir) async {
+  final String outputPath =
+      '${tempDir.path}/output_${DateTime.now().millisecondsSinceEpoch}.mp4';
+
+  return outputPath;
+}
+
+Future<String> processVideoSimple(String inputPath,
+    {Map<String, dynamic>? options}) async {
+  final Directory tempDir = await getTemporaryDirectory();
+  String outputPath = await _getOutputPath(tempDir);
+
+  // Default values for enhanced visuals
+  int width = options?['width'] ?? -1; // -1 means maintain aspect ratio
+  int height = options?['height'] ?? -1;
+  double hue = options?['hue'] ?? 0.0;
+  double saturation = options?['saturation'] ?? 1.5; // Increased saturation
+  double brightness = options?['brightness'] ?? 0.2; // Increased brightness
+  double contrast = options?['contrast'] ?? 1.2; // Increased contrast
+  double sharpness = options?['sharpness'] ?? 1.5; // Increased sharpness
+  double vibrance = options?['vibrance'] ?? 1.3; // Increased vibrance
+
+  // Construct the video filter string
+  List<String> filters = [];
+  if (width != -1 || height != -1) {
+    filters.add('scale=$width:$height');
+  }
+  filters.add('hue=h=$hue:s=$saturation');
+  filters.add('unsharp=5:5:$sharpness:5:5:0');
+  filters.add('vibrance=$vibrance');
+
+  String videoFilters = filters.join(',');
+
+  String ffmpegCommand = '-i $inputPath ';
+  if (videoFilters.isNotEmpty) {
+    ffmpegCommand += '-vf "$videoFilters" ';
+  }
+  ffmpegCommand += '-c:v mpeg4 -preset medium -crf 23 '
+      '-c:a aac -b:a 128k ' // Convert audio to AAC
+      '-movflags +faststart ' // Optimize for web streaming
+      '$outputPath';
+
+  final session = await FFmpegKit.execute(ffmpegCommand);
+  final returnCode = await session.getReturnCode();
+
+  if (ReturnCode.isSuccess(returnCode)) {
+    print("Video processing completed successfully.");
+    return outputPath;
+  } else {
+    final logs = await session.getLogs();
+    print("Error while processing video. FFmpeg logs:");
+    for (var log in logs) {
+      print(log.getMessage());
+    }
+    return '';
+  }
+}
 Future<String?> processVideoWithComplexOverlay(
     String inputPath,
-    List<TextOverlay> textOverlays,
-    List<BoxOverlay> boxOverlays,
-    List<ImageOverlay> ImageOverlays,
     {bool isRTL = true}) async {
   try {
 
@@ -103,8 +157,8 @@ Future<String?> processVideoWithComplexOverlay(
     String audioPath = audio.path;
 
     final Directory tempDir = await getTemporaryDirectory();
-    final String outputPath =
-        '${tempDir.path}/output_${DateTime.now().millisecondsSinceEpoch}.mp4';
+    final String outputPath = await _getOutputPath(tempDir);
+
 
     final fontBytes = await rootBundle.load('assets/fonts/Rubik-Regular.ttf');
     final fontFile = File('${tempDir.path}/Rubik-Regular.ttf');
@@ -120,7 +174,6 @@ double marginPercentage = 0.05;
     double textYOffset = boxHeight * 1.5 + 7;
     int fontSize = 28;
     int redBoxTextSize = 20;
-
 String ffmpegCommand =
         '-i "$inputPath" -i "$imageOverlayPath" -i "$audioPath" -filter_complex "'
         '[0:v]drawbox=x=iw*$marginPercentage:y=ih*$blackBoxYPercentage-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=black@0.75:t=fill[black_rect];'
@@ -131,13 +184,8 @@ String ffmpegCommand =
         '[red_box]drawtext=fontfile=${fontFile.path.replaceAll("'", "'\\''").replaceAll('\\', '\\\\')}:'
         'text=\'1234\':fontcolor=white:fontsize=$redBoxTextSize*1.5:x=(w-$redBoxSize*4)+$redBoxSize+14:y=h*$blackBoxYPercentage-$redBoxSize/2-7-7:box=0:boxcolor=white@0:boxborderw=0:shadowcolor=black@0.5:shadowx=1:shadowy=1[red_box_text];'
         '[1:v]scale=$imageOverlayWidth:-1[scaled_img];'
-        '[red_box_text][scaled_img]overlay=x=W*(1-$marginPercentage*4.5)-$imageOverlayWidth:y=H*$blackBoxYPercentage-7-h[overlay_final];'
-        '[overlay_final]colorlevels=rimin=0:gimin=0:bimin=0:rimax=0.95:gimax=0.95:bimax=0.95:romin=0:gomin=0:bomin=0:romax=1:gomax=1:bomax=1[levels];'
-        '[levels]vibrance=intensity=0.3:rbal=1:gbal=1:bbal=1[vibrant];'
-        '[vibrant]unsharp=luma_msize_x=5:luma_msize_y=5:luma_amount=1.1[sharpened];'
-        '[sharpened]hue=s=1.05:b=1.01[final]'
+        '[red_box_text][scaled_img]overlay=x=W*(1-$marginPercentage*4.5)-$imageOverlayWidth:y=H*$blackBoxYPercentage-7-h[final]'
         '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 1 -c:a aac -r 60 "$outputPath"';
-
         
     final session = await FFmpegKit.execute(ffmpegCommand);
     final returnCode = await session.getReturnCode();

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_camera_example/classes/video.dart';
 import 'package:flutter_camera_example/screens/add_videos_screen.dart';
+import 'package:flutter_camera_example/services/process_video.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
@@ -20,30 +21,47 @@ class CameraScreen extends StatefulWidget {
 }
 
 class _CameraScreenState extends State<CameraScreen> {
-  late CameraController _controller;
+  CameraController? _controller;
   bool _isRecording = false;
   bool _isReviewing = false;
   Timer? _recordingTimer;
   int _recordingDuration = 0;
-  String? _videoPath;
+  String _videoPath = '';
   CameraOrientation? orientation;
   int _countdownValue = 3;
   bool _isCountingDown = false;
-  late VideoPlayerController _videoPlayerController;
+  VideoPlayerController? _videoPlayerController;
   double _currentPosition = 0.0;
 
   @override
   void initState() {
     super.initState();
     _initializeCamera();
-    orientation = Provider.of<AppStateModel>(context, listen: false)
-        .preferences
-        .selectedOrientation;
   }
 
   Future<void> _initializeCamera() async {
-    _controller = await initializeCamera(cameras);
-    if (mounted) setState(() {});
+    final cameras = await availableCameras();
+    final firstCamera = cameras.first;
+
+    setState(() {
+      _controller = CameraController(
+        firstCamera,
+        ResolutionPreset.medium,
+      );
+    });
+
+    try {
+      await _controller!.initialize();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      print('Error initializing camera: $e');
+    }
+
+    orientation = Provider.of<AppStateModel>(context, listen: false)
+        .preferences
+        .selectedOrientation;
   }
 
   Future<void> _startCountdown() async {
@@ -67,9 +85,10 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _startVideoRecording() async {
-    if (!_controller.value.isInitialized) {
+    if (_controller == null || !_controller!.value.isInitialized) {
       return;
     }
+
     final Directory appDirectory = await getApplicationDocumentsDirectory();
     final String videoDirectory = '${appDirectory.path}/Videos';
     await Directory(videoDirectory).create(recursive: true);
@@ -77,7 +96,7 @@ class _CameraScreenState extends State<CameraScreen> {
     final String filePath = '$videoDirectory/$currentTime.mp4';
 
     try {
-      await _controller.startVideoRecording();
+      await _controller!.startVideoRecording();
       setState(() {
         _isRecording = true;
         _recordingDuration = 0;
@@ -94,36 +113,34 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   Future<void> _stopVideoRecording() async {
-    if (!_controller.value.isRecordingVideo) {
+    if (_controller == null || !_controller!.value.isRecordingVideo) {
       return;
     }
 
     try {
-      XFile videoFile = await _controller.stopVideoRecording();
-      await videoFile.saveTo(_videoPath!);
+      XFile videoFile = await _controller!.stopVideoRecording();
+      await videoFile.saveTo(_videoPath);
       _recordingTimer?.cancel();
 
-      // Initialize video player for review
-      _videoPlayerController = VideoPlayerController.file(File(_videoPath!));
-      await _videoPlayerController.initialize();
-      await _videoPlayerController.setLooping(true);
-      await _videoPlayerController.play();
-
-      // Apply image enhancement
       await _applyImageEnhancement();
+
+      _videoPlayerController = VideoPlayerController.file(File(_videoPath));
+      await _videoPlayerController!.initialize();
+      await _videoPlayerController!.setLooping(true);
+      await _videoPlayerController!.play();
+
 
       setState(() {
         _isRecording = false;
         _isReviewing = true;
       });
 
-      // Update position periodically
       Timer.periodic(const Duration(milliseconds: 200), (timer) {
         if (mounted && _isReviewing) {
           setState(() {
             _currentPosition =
-                _videoPlayerController.value.position.inMilliseconds /
-                    _videoPlayerController.value.duration.inMilliseconds;
+                _videoPlayerController!.value.position.inMilliseconds /
+                    _videoPlayerController!.value.duration.inMilliseconds;
           });
         } else {
           timer.cancel();
@@ -136,8 +153,12 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Future<void> _applyImageEnhancement() async {
     print("Applying image enhancement...");
-    await Future.delayed(
-        const Duration(seconds: 2)); // Simulating processing time
+    
+    String result = await processVideoSimple(_videoPath);
+
+    print("but the result: " + result);
+
+    _videoPath = result;
   }
 
   void _saveVideo() {
@@ -146,71 +167,70 @@ class _CameraScreenState extends State<CameraScreen> {
     CameraOrientation? _orientation = appState.preferences.selectedOrientation;
 
     final videoObject = Video(
-        path: _videoPath!,
+        path: _videoPath,
         recordedAt: DateTime.now(),
         duration: Duration(seconds: _recordingDuration),
         orientation: _orientation ?? CameraOrientation.portrait);
 
     appState.memoryAddMedia(videoObject);
+    appState.addMedia(_videoPath);
 
-    // Add the video to AppStateModel
-    Provider.of<AppStateModel>(context, listen: false).addMedia(_videoPath!);
-    // Navigate back or to gallery
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (_) => const AddVideosScreen()),
     );
   }
 
   void _reshootVideo() {
-    // Reset state for new recording
     setState(() {
       _isReviewing = false;
       _recordingDuration = 0;
-      _videoPath = null;
+      _videoPath = '';
     });
-    _videoPlayerController.dispose();
+    _videoPlayerController?.dispose();
   }
 
   void _seekVideo(double position) {
-    final Duration duration = _videoPlayerController.value.duration;
+    final Duration duration = _videoPlayerController!.value.duration;
     final newPosition = duration * position;
-    _videoPlayerController.seekTo(newPosition);
+    _videoPlayerController!.seekTo(newPosition);
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _controller?.dispose();
     _recordingTimer?.cancel();
-    if (_isReviewing) {
-      _videoPlayerController.dispose();
-    }
+    _videoPlayerController?.dispose();
     super.dispose();
   }
 
   @override
-Widget build(BuildContext context) {
-    if (!_controller.value.isInitialized) {
+  Widget build(BuildContext context) {
+    if (_controller == null || !_controller!.value.isInitialized) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_isReviewing) {
-      return Scaffold(
-        body: Stack(
+      return _buildReviewScreen();
+    }
+
+    return _buildCameraScreen();
+  }
+
+  Widget _buildReviewScreen() {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
           children: [
-            Positioned.fill(
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SizedBox(
-                  width: _videoPlayerController.value.size.height,
-                  height: _videoPlayerController.value.size.width,
-                  child: Transform.rotate(
-                      angle: 90 * 3.1415926 / 180,
-                      child: VideoPlayer(_videoPlayerController)),
-                ),
+            Center(
+              child: AspectRatio(
+                aspectRatio: _videoPlayerController!.value.aspectRatio,
+                child: VideoPlayer(_videoPlayerController!),
               ),
             ),
             Positioned(
-              top: 40,
+              top: 20,
               left: 20,
               child: Container(
                 padding:
@@ -261,13 +281,15 @@ Widget build(BuildContext context) {
                     children: [
                       ElevatedButton(
                         onPressed: _reshootVideo,
-                        child: const Text('Reshoot'),
+                        child: const Text('מחדש',
+                            style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey),
                       ),
                       ElevatedButton(
                         onPressed: _saveVideo,
-                        child: const Text('Done'),
+                        child: const Text('המשך',
+                            style: TextStyle(color: Colors.white)),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.green),
                       ),
@@ -278,15 +300,16 @@ Widget build(BuildContext context) {
             ),
           ],
         ),
-      );
-    }
+      ),
+    );
+  }
 
-
+  Widget _buildCameraScreen() {
     return Scaffold(
       body: Stack(
         children: <Widget>[
           Positioned.fill(
-            child: CameraPreview(_controller),
+            child: CameraPreview(_controller!),
           ),
           if (_isRecording) RecordingIndicator(duration: _recordingDuration),
           if (_isCountingDown)
@@ -296,29 +319,24 @@ Widget build(BuildContext context) {
                 style: const TextStyle(fontSize: 100, color: Colors.white),
               ),
             ),
-
-
-
           Positioned(
             bottom: 75,
             left: MediaQuery.of(context).size.width / 2,
             child: Transform.translate(
-              offset: const Offset(
-                  -52 / 2, 0), // Adjust the offset for the new button size
+              offset: const Offset(-52 / 2, 0),
               child: Container(
-                width: 52, // Increased button size
-                height: 52, // Increased button size
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.red, // Red background color
+                  color: Colors.red,
                   border: Border.all(
-                    color: Colors.white, // Outer white border
-                    width: 5, // Increased white border size
+                    color: Colors.white,
+                    width: 5,
                   ),
                   boxShadow: const [
                     BoxShadow(
-                      color: Colors
-                          .transparent, // Transparent shadow (acts as the 1px transparent border)
+                      color: Colors.transparent,
                       spreadRadius: 1,
                     ),
                   ],
@@ -327,17 +345,14 @@ Widget build(BuildContext context) {
                   onPressed: _isRecording
                       ? _stopVideoRecording
                       : (_isCountingDown ? null : _startCountdown),
-                  backgroundColor: Colors.red, // Ensure the button is also red
-
-                  elevation: 0, // Remove shadow of FloatingActionButton
+                  backgroundColor: Colors.red,
+                  elevation: 0,
                 ),
               ),
             ),
           ),
-
         ],
       ),
     );
-
   }
 }

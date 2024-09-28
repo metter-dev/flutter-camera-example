@@ -23,7 +23,7 @@ class AddVideosScreen extends StatelessWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: TextButton(
-              child: const Text('יציאה', style: TextStyle(color: Colors.black)),
+              child: const Text('חזור', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 appState.clearMemoryMediaList();
                 Navigator.of(context).popUntil(

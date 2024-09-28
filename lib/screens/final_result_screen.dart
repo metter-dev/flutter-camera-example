@@ -75,88 +75,9 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
       final appState = Provider.of<AppStateModel>(context, listen: false);
       final videoPath = appState.preferences.memoryMediaList.first.path;
 
-      List<TextOverlay> textOverlays = [];
-      List<BoxOverlay> boxOverlays = [];
-
-      double w = MediaQuery.of(context).size.width;
-      double h = MediaQuery.of(context).size.height;
-      double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-
-      double detailsXOffset = 0.1;
-
-      double footerLeftMargin = (w * pixelRatio) * 0.025;
-
-      switch (templateIndex) {
-        case 0:
-          boxOverlays = [
-            BoxOverlay(
-                position: Offset(footerLeftMargin, 100),
-                width: ((pixelRatio * w) * (0.85)),
-                height: 75,
-                backgroundColor: Colors.black,
-                opacity: 0.4),
-            BoxOverlay(
-                position: Offset(footerLeftMargin, 175),
-                width: ((pixelRatio * w) * (0.85)).roundToDouble(),
-                height: 50,
-                backgroundColor: Colors.white,
-                opacity: 0.65),
-            BoxOverlay(
-              position:
-                  Offset(w * pixelRatio * (1 - detailsXOffset) - 180, 125),
-              width: 75,
-              height: 25,
-              backgroundColor: Colors.red,
-            )
-          ];
-
-          textOverlays = [
-            TextOverlay(
-              textColor: Colors.black,
-              text: 'השם שלך מופיע כאן',
-              position: Offset(detailsXOffset + 0.05, 175),
-            ),
-            TextOverlay(
-              textColor: Colors.black,
-              text: 'שח 1,000,000',
-              position: const Offset(0.8, 175),
-            ),
-            TextOverlay(
-              textColor: Colors.white,
-              text: '(617) 123-4567',
-              position: const Offset(0.8, 115),
-            ),
-            TextOverlay(
-              textColor: Colors.white,
-              text: '1234',
-              position: Offset(detailsXOffset, 115),
-            ),
-          ];
-
-          break;
-        case 1:
-          textOverlays = [
-            TextOverlay(
-              text: 'שח 1,000,000',
-              position: const Offset(0.8, 0.9),
-              textColor: Colors.white,
-            ),
-          ];
-
-          break;
-        default:
-          textOverlays = [];
-      }
-
       final processedPath = await processVideoWithComplexOverlay(
         videoPath,
-        textOverlays,
-        boxOverlays,
-        [
-          ImageOverlay(
-              position: Offset(w * pixelRatio * (1 - detailsXOffset) - 145,
-                  (h) - (h * 3 * detailsXOffset) - 125))
-        ],
+
       );
 
       if (!mounted) return;
@@ -186,6 +107,7 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -204,7 +126,7 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
               top: 40,
               left: 20,
               child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.red),
+                icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
               ),
             ),
