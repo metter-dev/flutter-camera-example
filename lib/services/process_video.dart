@@ -174,7 +174,7 @@ double marginPercentage = 0.05;
     double textYOffset = boxHeight * 1.5 + 7;
     int fontSize = 28;
     int redBoxTextSize = 20;
-String ffmpegCommand =
+    String ffmpegCommand =
         '-i "$inputPath" -i "$imageOverlayPath" -i "$audioPath" -filter_complex "'
         '[0:v]drawbox=x=iw*$marginPercentage:y=ih*$blackBoxYPercentage-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=black@0.75:t=fill[black_rect];'
         '[black_rect]drawbox=x=iw*$marginPercentage:y=ih*$whiteBoxYPercentage-$boxHeight-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=white@0.75:t=fill[white_rect];'
@@ -185,8 +185,8 @@ String ffmpegCommand =
         'text=\'1234\':fontcolor=white:fontsize=$redBoxTextSize*1.5:x=(w-$redBoxSize*4)+$redBoxSize+14:y=h*$blackBoxYPercentage-$redBoxSize/2-7-7:box=0:boxcolor=white@0:boxborderw=0:shadowcolor=black@0.5:shadowx=1:shadowy=1[red_box_text];'
         '[1:v]scale=$imageOverlayWidth:-1[scaled_img];'
         '[red_box_text][scaled_img]overlay=x=W*(1-$marginPercentage*4.5)-$imageOverlayWidth:y=H*$blackBoxYPercentage-7-h[final]'
-        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 1 -c:a aac -r 60 "$outputPath"';
-        
+        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 1 -c:a aac -r 60 -shortest "$outputPath"';
+                
     final session = await FFmpegKit.execute(ffmpegCommand);
     final returnCode = await session.getReturnCode();
 

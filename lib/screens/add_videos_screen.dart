@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_camera_example/classes/video.dart';
+import 'package:flutter_camera_example/screens/orientation_selection_screen.dart';
 import 'package:flutter_camera_example/screens/select_template_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
@@ -26,8 +27,9 @@ class AddVideosScreen extends StatelessWidget {
               child: const Text('חזור', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 appState.clearMemoryMediaList();
-                Navigator.of(context).popUntil(
-                  (route) => route.isFirst,
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                      builder: (_) => const OrientationSelectionScreen()),
                 );
               },
             ),

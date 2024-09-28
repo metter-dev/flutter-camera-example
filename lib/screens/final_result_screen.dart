@@ -51,6 +51,8 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
       _controller = VideoPlayerController.file(File(videoPath));
       await _controller!.initialize();
 
+
+
       if (!mounted) return;
 
       setState(() {

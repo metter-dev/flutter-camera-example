@@ -163,7 +163,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: TextButton(
-          child: const Text('יציאה', style: TextStyle(color: Colors.black)),
+          child: const Text('חזור', style: TextStyle(color: Colors.black)),
           onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [

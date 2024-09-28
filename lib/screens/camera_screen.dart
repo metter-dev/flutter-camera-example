@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_camera_example/classes/video.dart';
 import 'package:flutter_camera_example/screens/add_videos_screen.dart';
@@ -20,7 +21,8 @@ class CameraScreen extends StatefulWidget {
   _CameraScreenState createState() => _CameraScreenState();
 }
 
-class _CameraScreenState extends State<CameraScreen> {
+class _CameraScreenState extends State<CameraScreen>
+    with WidgetsBindingObserver {
   CameraController? _controller;
   bool _isRecording = false;
   bool _isReviewing = false;
@@ -32,28 +34,62 @@ class _CameraScreenState extends State<CameraScreen> {
   bool _isCountingDown = false;
   VideoPlayerController? _videoPlayerController;
   double _currentPosition = 0.0;
+  bool _isCameraReady = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeCamera();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller?.dispose();
+    _recordingTimer?.cancel();
+    _videoPlayerController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final CameraController? cameraController = _controller;
+
+    // App state changed before we got the chance to initialize.
+    if (cameraController == null || !cameraController.value.isInitialized) {
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive) {
+      cameraController.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      _initializeCamera();
+    }
   }
 
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
     final firstCamera = cameras.first;
 
-    setState(() {
-      _controller = CameraController(
-        firstCamera,
-        ResolutionPreset.medium,
-      );
+    final controller = CameraController(
+      firstCamera,
+      ResolutionPreset.high,
+      enableAudio: false,
+      fps: 60,
+    );
+
+    controller.addListener(() {
+      if (mounted) setState(() {});
     });
 
     try {
-      await _controller!.initialize();
+      await controller.initialize();
       if (mounted) {
-        setState(() {});
+        setState(() {
+          _controller = controller;
+          _isCameraReady = true;
+        });
       }
     } catch (e) {
       print('Error initializing camera: $e');
@@ -129,7 +165,6 @@ class _CameraScreenState extends State<CameraScreen> {
       await _videoPlayerController!.setLooping(true);
       await _videoPlayerController!.play();
 
-
       setState(() {
         _isRecording = false;
         _isReviewing = true;
@@ -153,7 +188,7 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Future<void> _applyImageEnhancement() async {
     print("Applying image enhancement...");
-    
+
     String result = await processVideoSimple(_videoPath);
 
     print("but the result: " + result);
@@ -196,16 +231,8 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   @override
-  void dispose() {
-    _controller?.dispose();
-    _recordingTimer?.cancel();
-    _videoPlayerController?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_controller == null || !_controller!.value.isInitialized) {
+    if (!_isCameraReady) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -214,6 +241,83 @@ class _CameraScreenState extends State<CameraScreen> {
     }
 
     return _buildCameraScreen();
+  }
+
+  Widget _buildCameraScreen() {
+    return Scaffold(
+      body: OrientationBuilder(
+        builder: (context, orientation) {
+          return Stack(
+            children: <Widget>[
+              _buildCameraPreview(),
+              if (_isRecording)
+                RecordingIndicator(duration: _recordingDuration),
+              if (_isCountingDown)
+                Center(
+                  child: Text(
+                    '$_countdownValue',
+                    style: const TextStyle(fontSize: 100, color: Colors.white),
+                  ),
+                ),
+              _buildCaptureButton(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCameraPreview() {
+    final size = MediaQuery.of(context).size;
+    final deviceRatio = size.width / size.height;
+
+    final scale = 1 / (_controller!.value.aspectRatio * deviceRatio);
+
+    return Transform.scale(
+      scale: scale,
+      child: Center(
+        child: CameraPreview(_controller!),
+      ),
+    );
+  }
+
+  Widget _buildCaptureButton() {
+    return Positioned(
+      bottom: 75,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.red,
+            border: Border.all(
+              color: Colors.white,
+              width: 5,
+            ),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.transparent,
+                spreadRadius: 1,
+              ),
+            ],
+          ),
+          child: FloatingActionButton(
+            onPressed: _isRecording
+                ? _stopVideoRecording
+                : (_isCountingDown ? null : _startCountdown),
+            backgroundColor: Colors.red,
+            elevation: 0,
+            child: Icon(
+              _isRecording ? Icons.stop : Icons.fiber_manual_record,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildReviewScreen() {
@@ -300,58 +404,6 @@ class _CameraScreenState extends State<CameraScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildCameraScreen() {
-    return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          Positioned.fill(
-            child: CameraPreview(_controller!),
-          ),
-          if (_isRecording) RecordingIndicator(duration: _recordingDuration),
-          if (_isCountingDown)
-            Center(
-              child: Text(
-                '$_countdownValue',
-                style: const TextStyle(fontSize: 100, color: Colors.white),
-              ),
-            ),
-          Positioned(
-            bottom: 75,
-            left: MediaQuery.of(context).size.width / 2,
-            child: Transform.translate(
-              offset: const Offset(-52 / 2, 0),
-              child: Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.red,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 5,
-                  ),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.transparent,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: FloatingActionButton(
-                  onPressed: _isRecording
-                      ? _stopVideoRecording
-                      : (_isCountingDown ? null : _startCountdown),
-                  backgroundColor: Colors.red,
-                  elevation: 0,
-                ),
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
