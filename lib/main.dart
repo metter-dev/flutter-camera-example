@@ -9,6 +9,7 @@ late List<CameraDescription> cameras;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   cameras = await availableCameras();
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppStateModel(),
@@ -22,6 +23,10 @@ class CameraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    GlobalState.init(context);
+    GlobalState.loadUserProfile();
+
     return MaterialApp(
       title: 'Flutter Camera Example',
       theme: ThemeData(

@@ -1,5 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="nal.bartvwezel.flutter_camera_example">
+    package="cra.bartvwezel.flutter_camera_example">
 
     <queries>
         <!-- Query for Facebook -->

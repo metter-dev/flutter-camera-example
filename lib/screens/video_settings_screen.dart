@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 
 class VideoSettingsScreen extends StatefulWidget {
   const VideoSettingsScreen({Key? key}) : super(key: key);
@@ -8,8 +9,8 @@ class VideoSettingsScreen extends StatefulWidget {
 }
 
 class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
-  String videoQuality = '1080p';
-  String videoFPS = '60 fps';
+  String videoQuality = GlobalState.getProfileAttribute('videoFPS') ?? '1080p';
+  String videoFPS = GlobalState.getProfileAttribute('videoFPS') ?? '60 fps';
   String videoStabilization = 'אוטומטי';
   bool stabilizerFriendly = false;
   bool countdownTimer = true;
@@ -61,10 +62,15 @@ class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
                   'איכות וידאו',
                   videoQuality,
                   'הגדלת האיכות תייצר סרטונים הנראים טוב יותר על חשבון מקום שנלקח במכשיר שלך וזמן עיבוד ארוך יותר',
-                  () => _showOptionDialog(
+                    () async {
+                  _showOptionDialog(
                       'איכות וידאו',
                       ['720p', '1080p', '4K'],
-                      (value) => setState(() => videoQuality = value)),
+                      (value) async {
+                    setState(() => videoQuality = value);
+                    GlobalState.addProfileAttribute('videoFPS', videoQuality);
+                  });
+                }
                 ),
                 _buildSettingItem(
                   'קצב פריימים',
