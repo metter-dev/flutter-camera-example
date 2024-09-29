@@ -133,17 +133,25 @@ class GalleryScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const OrientationSelectionScreen()),
-          );
-        },
-        child: const Icon(Icons.add, color: Colors.white),
-        backgroundColor: const Color.fromARGB(255, 76, 116, 175),
-        shape: const CircleBorder(),
+      floatingActionButton: Padding(
+        padding:
+            const EdgeInsets.only(bottom: 24), // Adjust this value as needed
+        child: SizedBox(
+          width: 96,
+          height: 96,
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const OrientationSelectionScreen()),
+              );
+            },
+            child: const Icon(Icons.add, color: Colors.white, size: 40),
+            backgroundColor: const Color.fromARGB(255, 76, 116, 175),
+            shape: const CircleBorder(),
+          ),
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
