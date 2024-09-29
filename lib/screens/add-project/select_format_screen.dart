@@ -30,10 +30,7 @@ class _SelectFormatScreenState extends State<SelectFormatScreen> {
               leading: TextButton(
                   child:
                       const Text('חזור', style: TextStyle(color: Colors.black)),
-                  onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                            builder: (context) => const SelectFormatScreen()),
-                      )),
+                  onPressed: () => Navigator.of(context).pop()),
               actions: [
                 TextButton(
                   child:

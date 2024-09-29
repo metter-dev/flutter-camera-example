@@ -28,10 +28,7 @@ class AddVideosScreen extends StatelessWidget {
               child: const Text('חזור', style: TextStyle(color: Colors.black)),
               onPressed: () {
                 appState.clearMemoryMediaList();
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                      builder: (_) => const OrientationSelectionScreen()),
-                );
+                Navigator.of(context).pop();
               },
             ),
             actions: [

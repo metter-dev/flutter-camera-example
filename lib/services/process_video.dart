@@ -96,11 +96,11 @@ Future<String> processVideoSimple(String inputPath,
   int width = options?['width'] ?? -1; // -1 means maintain aspect ratio
   int height = options?['height'] ?? -1;
   double hue = options?['hue'] ?? 0.0;
-  double saturation = options?['saturation'] ?? 1.5; // Increased saturation
+  double saturation = options?['saturation'] ?? 1.15; // Increased saturation
   double brightness = options?['brightness'] ?? 0.2; // Increased brightness
   double contrast = options?['contrast'] ?? 1.2; // Increased contrast
   double sharpness = options?['sharpness'] ?? 1.5; // Increased sharpness
-  double vibrance = options?['vibrance'] ?? 1.3; // Increased vibrance
+  double vibrance = options?['vibrance'] ?? 1.05; // Increased vibrance
 
   // Construct the video filter string
   List<String> filters = [];
@@ -156,6 +156,9 @@ Future<String?> processVideoWithComplexOverlay(
     File audio = await copyAssetToTempAndRead(userMusicChoice);
     String audioPath = audio.path;
 
+    File outro = await copyAssetToTempAndRead('assets/outro.png');
+    String outroPath = outro.path;
+
     final Directory tempDir = await getTemporaryDirectory();
     final String outputPath = await _getOutputPath(tempDir);
 
@@ -174,7 +177,11 @@ double marginPercentage = 0.05;
     double textYOffset = boxHeight * 1.5 + 7;
     int fontSize = 28;
     int redBoxTextSize = 20;
-    String ffmpegCommand =
+
+    
+    String temporaryOutputPath = await _getOutputPath(tempDir);
+
+    String ffmpegCommand1 =
         '-i "$inputPath" -i "$imageOverlayPath" -i "$audioPath" -filter_complex "'
         '[0:v]drawbox=x=iw*$marginPercentage:y=ih*$blackBoxYPercentage-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=black@0.75:t=fill[black_rect];'
         '[black_rect]drawbox=x=iw*$marginPercentage:y=ih*$whiteBoxYPercentage-$boxHeight-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=white@0.75:t=fill[white_rect];'
@@ -185,14 +192,24 @@ double marginPercentage = 0.05;
         'text=\'1234\':fontcolor=white:fontsize=$redBoxTextSize*1.5:x=(w-$redBoxSize*4)+$redBoxSize+14:y=h*$blackBoxYPercentage-$redBoxSize/2-7-7:box=0:boxcolor=white@0:boxborderw=0:shadowcolor=black@0.5:shadowx=1:shadowy=1[red_box_text];'
         '[1:v]scale=$imageOverlayWidth:-1[scaled_img];'
         '[red_box_text][scaled_img]overlay=x=W*(1-$marginPercentage*4.5)-$imageOverlayWidth:y=H*$blackBoxYPercentage-7-h[final]'
-        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 1 -c:a aac -r 60 -shortest "$outputPath"';
-                
-    final session = await FFmpegKit.execute(ffmpegCommand);
+        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 5 -c:a aac -r 30 -shortest "$temporaryOutputPath"';
+
+    final session = await FFmpegKit.execute(ffmpegCommand1);
+
+    // String ffmpegCommand2 =
+    //     '-i "$temporaryOutputPath" -i "$outroPath" -filter_complex "'
+    //     '[0:v][1:v]concat=n=2:v=1:a=0[outv];'
+    //     '[0:a][1:a]concat=n=2:v=0:a=1[outa]'
+    //     '" -map "[outv]" -map "[outa]" -c:v mpeg4 -q:v 5 -c:a aac -r 30 "$outputPath"';
+    // final session2 = await FFmpegKit.execute(ffmpegCommand2);
+   
+   
+   
     final returnCode = await session.getReturnCode();
 
     if (ReturnCode.isSuccess(returnCode)) {
       print("Video processing completed successfully.");
-      return outputPath;
+      return temporaryOutputPath;
     } else {
       final logs = await session.getLogs();
       print("Error while processing video. FFmpeg logs:");

@@ -7,6 +7,7 @@ import 'dart:io';
 import 'package:video_thumbnail/video_thumbnail.dart';
 import 'media_view_screen.dart';
 import 'add-project/orientation_selection_screen.dart';
+import 'settings/user-profile/step_1.dart';
 
 class GalleryScreen extends StatelessWidget {
   const GalleryScreen({Key? key}) : super(key: key);
@@ -58,7 +59,11 @@ class GalleryScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('מֵטר', style: TextStyle(fontSize: 42)),
+        toolbarHeight: 75,
+        title: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 0, vertical: 16),
+          child: Text('מֵטר', style: TextStyle(fontSize: 48)),
+        ),
         centerTitle: false,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -71,7 +76,7 @@ class GalleryScreen extends StatelessWidget {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(16.0),
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: 'חפש פרוייקט',
@@ -163,7 +168,10 @@ class GalleryScreen extends StatelessWidget {
               MaterialPageRoute(builder: (context) => const SettingsScreen()),
             );
           } else if (index == 1) {
-            print('Navigate to Profile screen');
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ProfileSettingsScreen()));
           }
         },
       ),

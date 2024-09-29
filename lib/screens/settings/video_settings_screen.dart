@@ -17,29 +17,9 @@ class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: Container(),
-        title: const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text('86%', style: TextStyle(fontSize: 14)),
-                SizedBox(width: 4),
-                Text('4G', style: TextStyle(fontSize: 12)),
-                SizedBox(width: 4),
-                Text('LTE', style: TextStyle(fontSize: 12)),
-                SizedBox(width: 4),
-                Text('345 KB/s', style: TextStyle(fontSize: 12)),
-                SizedBox(width: 4),
-                Icon(Icons.sync, size: 16),
-              ],
-            ),
-            Text('19:48', style: TextStyle(fontSize: 16)),
-          ],
-        ),
-      ),
+      appBar: AppBar(),
       body: Column(
+
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -47,10 +27,13 @@ class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('הגדרות וידאו',
+                    textAlign: TextAlign.center,
                     style:
-                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                Text('סיום',
-                    style: TextStyle(color: Colors.green, fontSize: 16)),
+                        TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    )),
+
               ],
             ),
           ),

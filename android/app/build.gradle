@@ -44,7 +44,7 @@ android {
 
     defaultConfig {
         ndkVersion = "21.4.7075529"
-        applicationId "nl.bartvwezel.flutter_camera_example"
+        applicationId "nlg.bartvwezel.flutter_camera_example"
         minSdkVersion 24
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()

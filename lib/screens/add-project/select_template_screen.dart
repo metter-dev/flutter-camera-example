@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/listing_details_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +7,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import 'package:whatsapp_share/whatsapp_share.dart';
 import 'package:path/path.dart' as path;
+
+import 'add_listing_details.dart';
 
 class SelectTemplateScreen extends StatefulWidget {
   const SelectTemplateScreen({Key? key}) : super(key: key);
