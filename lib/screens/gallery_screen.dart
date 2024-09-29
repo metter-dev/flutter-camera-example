@@ -11,6 +11,7 @@ import 'orientation_selection_screen.dart';
 class GalleryScreen extends StatelessWidget {
   const GalleryScreen({Key? key}) : super(key: key);
 
+
   Future<Widget> _getMediaThumbnail(String mediaPath) async {
     if (mediaPath.endsWith('.jpg')) {
       return Image.file(
@@ -133,10 +134,7 @@ class GalleryScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: Padding(
-        padding:
-            const EdgeInsets.only(bottom: 24), // Adjust this value as needed
-        child: SizedBox(
+      floatingActionButton: SizedBox(
           width: 96,
           height: 96,
           child: FloatingActionButton(
@@ -152,30 +150,69 @@ class GalleryScreen extends StatelessWidget {
             shape: const CircleBorder(),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'הגדרות',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'פרופיל',
-          ),
-        ],
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            );
-          } else if (index == 1) {
-            print('Navigate to Profile screen');
-          }
-        },
-      ),
+      
+      persistentFooterButtons: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                splashFactory: NoSplash.splashFactory,
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.settings),
+                  Text('הגדרות'),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                print('Navigate to Profile screen');
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                splashFactory: NoSplash.splashFactory,
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.person),
+                  Text('פרופיל'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
+
+
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
+}
+// Add this method outside of the build method:
+Widget _buildNavItem(IconData icon, String label, VoidCallback onTap) {
+  return Expanded(
+    child: InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 12)),
+        ],
+      ),
+    ),
+  );
 }
