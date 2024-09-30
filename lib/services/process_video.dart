@@ -96,11 +96,11 @@ Future<String> processVideoSimple(String inputPath,
   int width = options?['width'] ?? -1; // -1 means maintain aspect ratio
   int height = options?['height'] ?? -1;
   double hue = options?['hue'] ?? 0.0;
-  double saturation = options?['saturation'] ?? 1.15; // Increased saturation
+  double saturation = options?['saturation'] ?? 1.125; // Increased saturation
   double brightness = options?['brightness'] ?? 0.2; // Increased brightness
-  double contrast = options?['contrast'] ?? 1.2; // Increased contrast
+  double contrast = options?['contrast'] ?? 1.1; // Increased contrast
   double sharpness = options?['sharpness'] ?? 1.5; // Increased sharpness
-  double vibrance = options?['vibrance'] ?? 1.05; // Increased vibrance
+  double vibrance = options?['vibrance'] ?? 1.025; // Increased vibrance
 
   // Construct the video filter string
   List<String> filters = [];

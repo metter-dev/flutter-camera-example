@@ -33,6 +33,8 @@ class _CameraScreenState extends State<CameraScreen>
   double _currentPosition = 0.0;
   bool _isCameraReady = false;
   bool _isLoading = false;
+  bool isCountdownTimer =
+      GlobalState.getProfileAttribute('isCountdownTimer') == 'on';
 
   @override
   void initState() {
@@ -99,21 +101,24 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Future<void> _startCountdown() async {
-    setState(() {
-      _isCountingDown = true;
-      _countdownValue = 3;
-    });
 
-    for (int i = 3; i > 0; i--) {
+    if (isCountdownTimer) {
       setState(() {
-        _countdownValue = i;
+        _isCountingDown = true;
+        _countdownValue = 3;
       });
-      await Future.delayed(const Duration(seconds: 1));
-    }
 
-    setState(() {
-      _isCountingDown = false;
-    });
+      for (int i = 3; i > 0; i--) {
+        setState(() {
+          _countdownValue = i;
+        });
+        await Future.delayed(const Duration(seconds: 1));
+      }
+
+      setState(() {
+        _isCountingDown = false;
+      });
+    }
 
     await _startVideoRecording();
   }
@@ -190,11 +195,9 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   Future<void> _applyImageEnhancement() async {
-    print("Applying image enhancement...");
 
     String result = await processVideoSimple(_videoPath);
 
-    print("but the result: " + result);
 
     _videoPath = result;
   }
@@ -256,10 +259,17 @@ class _CameraScreenState extends State<CameraScreen>
               if (_isRecording)
                 RecordingIndicator(duration: _recordingDuration),
               if (_isCountingDown)
-                Center(
-                  child: Text(
-                    '$_countdownValue',
-                    style: const TextStyle(fontSize: 100, color: Colors.white),
+                IgnorePointer(
+                  ignoring: true,
+                  child: Container(
+                    color: Colors.black.withOpacity(0.5),
+                    child: Center(
+                      child: Text(
+                        '$_countdownValue',
+                        style:
+                            const TextStyle(fontSize: 100, color: Colors.white),
+                      ),
+                    ),
                   ),
                 ),
               _buildCaptureButton(),
@@ -320,7 +330,7 @@ class _CameraScreenState extends State<CameraScreen>
             shape: const CircleBorder(),
             onPressed: _isRecording
                 ? _stopVideoRecording
-                : (_isCountingDown ? null : _startCountdown),
+                : ((_isCountingDown) ? null : _startCountdown),
             backgroundColor: Colors.red,
             elevation: 0,
             child: Icon(
