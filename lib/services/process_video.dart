@@ -7,6 +7,64 @@ import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
+Future<bool> verifyInputs(
+    String inputVideoPath, String appendImagePath, int videoDuration) async {
+  bool isValid = true;
+
+  // Check if input video file exists
+  if (!await File(inputVideoPath).exists()) {
+    print('Error: Input video file does not exist: $inputVideoPath');
+    isValid = false;
+  }
+
+  // Check if append image file exists
+  if (!await File(appendImagePath).exists()) {
+    print('Error: Append image file does not exist: $appendImagePath');
+    isValid = false;
+  }
+
+  // Verify video duration
+  if (videoDuration <= 0) {
+    print('Error: Invalid video duration: $videoDuration');
+    isValid = false;
+  }
+
+  // Use FFprobe to get video information
+  if (await File(inputVideoPath).exists()) {
+    final result = await Process.run('ffprobe', [
+      '-v',
+      'error',
+      '-select_streams',
+      'v:0',
+      '-count_packets',
+      '-show_entries',
+      'stream=width,height,duration,nb_read_packets',
+      '-of',
+      'csv=p=0',
+      inputVideoPath
+    ]);
+
+    if (result.exitCode == 0) {
+      final info = result.stdout.toString().split(',');
+      if (info.length >= 4) {
+        print('Video Width: ${info[0]}');
+        print('Video Height: ${info[1]}');
+        print('Video Duration: ${info[2]} seconds');
+        print('Number of Packets: ${info[3]}');
+      } else {
+        print('Error: Unable to get complete video information');
+        isValid = false;
+      }
+    } else {
+      print('Error running FFprobe: ${result.stderr}');
+      isValid = false;
+    }
+  }
+
+  return isValid;
+}
+
+
 class ImageOverlay {
   final Offset position;
   final double width;
@@ -196,16 +254,25 @@ double marginPercentage = 0.05;
 
     final session = await FFmpegKit.execute(ffmpegCommand1);
 
+    int videoWidth = 1280;
+    int videoHeight = 720;
+    int videoDuration = 10;
+
+    String ffmpegCommand2 =
+        '-i $temporaryOutputPath -loop 1 -framerate 25 -t 3 -i $outputPath -t 3 -f lavfi -i aevalsrc=0 -i bar.png -filter_complex \'[1:0]scale=640:480[curtain];[0:0][0:1][curtain][2:0] concat=n=2:v=1:a=1[out];[out][3:0]overlay=W-w-25:H-h-25\' -max_muxing_queue_size 1000 output.mp4 -loglevel \'trace\'';
+   
     // String ffmpegCommand2 =
     //     '-i "$temporaryOutputPath" -i "$outroPath" -filter_complex "'
     //     '[0:v][1:v]concat=n=2:v=1:a=0[outv];'
     //     '[0:a][1:a]concat=n=2:v=0:a=1[outa]'
     //     '" -map "[outv]" -map "[outa]" -c:v mpeg4 -q:v 5 -c:a aac -r 30 "$outputPath"';
-    // final session2 = await FFmpegKit.execute(ffmpegCommand2);
+
+
+    final session2 = await FFmpegKit.execute(ffmpegCommand2);
    
    
    
-    final returnCode = await session.getReturnCode();
+    final returnCode = await session2.getReturnCode();
 
     if (ReturnCode.isSuccess(returnCode)) {
       print("Video processing completed successfully.");
