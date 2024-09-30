@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
 
 class VideoSettingsScreen extends StatefulWidget {
   const VideoSettingsScreen({Key? key}) : super(key: key);
@@ -8,47 +9,45 @@ class VideoSettingsScreen extends StatefulWidget {
 }
 
 class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
-  String videoQuality = '1080p';
-  String videoFPS = '60 fps';
-  String videoStabilization = 'אוטומטי';
+  String videoQuality =
+      GlobalState.getProfileAttribute('videoQuality') ?? '1080p';
+  String videoFPS = GlobalState.getProfileAttribute('videoFPS') ?? '60 fps';
+  String videoStabilization =
+      GlobalState.getProfileAttribute('videoStabilizer') ?? 'אוטומטי';
   bool stabilizerFriendly = false;
-  bool countdownTimer = true;
+  bool countdownTimer =
+      GlobalState.getProfileAttribute('isCountdownTimer') == 'on';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
       body: Column(
-
         children: [
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('הגדרות וידאו',
-                    textAlign: TextAlign.center,
                     style:
-                        TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    )),
-
+                        TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+    
               ],
             ),
           ),
           Expanded(
             child: ListView(
               children: [
-                _buildSettingItem(
-                  'איכות וידאו',
-                  videoQuality,
-                  'הגדלת האיכות תייצר סרטונים הנראים טוב יותר על חשבון מקום שנלקח במכשיר שלך וזמן עיבוד ארוך יותר',
-                  () => _showOptionDialog(
-                      'איכות וידאו',
-                      ['720p', '1080p', '4K'],
-                      (value) => setState(() => videoQuality = value)),
-                ),
+                _buildSettingItem('איכות וידאו', videoQuality,
+                    'הגדלת האיכות תייצר סרטונים הנראים טוב יותר על חשבון מקום שנלקח במכשיר שלך וזמן עיבוד ארוך יותר',
+                    () async {
+                  _showOptionDialog('איכות וידאו', ['720p', '1080p', '4K'],
+                      (value) async {
+                    setState(() => videoQuality = value);
+                    GlobalState.addProfileAttribute('videoQuality', value);
+                  });
+                }),
                 _buildSettingItem(
                   'קצב פריימים',
                   videoFPS,
@@ -56,7 +55,10 @@ class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
                   () => _showOptionDialog(
                       'קצב פריימים',
                       ['24 fps', '30 fps', '60 fps'],
-                      (value) => setState(() => videoFPS = value)),
+                      (value) => {
+                            setState(() => videoFPS = value),
+                            GlobalState.addProfileAttribute('videoFPS', value)
+                          }),
                 ),
                 _buildSettingItem(
                   'ייצוב וידאו',
@@ -65,7 +67,11 @@ class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
                   () => _showOptionDialog(
                       'ייצוב וידאו',
                       ['כבוי', 'מופעל', 'אוטומטי'],
-                      (value) => setState(() => videoStabilization = value)),
+                      (value) => {
+                            setState(() => videoStabilization = value),
+                            GlobalState.addProfileAttribute(
+                                'videoStabilizer', value ?? 'אוטומטי'),
+                          }),
                 ),
                 _buildSwitchItem(
                   'ידידותי למייצב',
@@ -77,7 +83,11 @@ class _VideoSettingsScreenState extends State<VideoSettingsScreen> {
                   'טיימר ספירה לאחור',
                   'הוסף 3 שניות ספירה לאחור כדי להתכונן להקלטה לפני כל צילום',
                   countdownTimer,
-                  (value) => setState(() => countdownTimer = value),
+                  (value) => {
+                    setState(() => countdownTimer = value),
+                    GlobalState.addProfileAttribute(
+                        'isCountdownTimer', value ? 'on' : 'off')
+                  },
                 ),
                 _buildInfoItem('גודל פרויקטים', "13 ב'"),
                 _buildInfoItem('גרסה', '(288) 3.2.0'),

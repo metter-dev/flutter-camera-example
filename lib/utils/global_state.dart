@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_camera_example/classes/video.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert'; // For JSON encoding/decoding
 
 enum CameraOrientation { landscape, portrait }
 
@@ -9,7 +11,7 @@ class AppState {
   CameraOrientation? selectedOrientation;
   List<String> mediaList = [];
   List<Video> memoryMediaList = [];
-  Map<String, String> userProfile = {"music": "assets/audio/silence.mp3"};
+  Map<String, String> userProfile = {};
 
   void setSelectedOrientation(CameraOrientation orientation) {
     selectedOrientation = orientation;
@@ -38,12 +40,28 @@ class AppState {
     memoryMediaList.clear();
   }
 
-  void addProfileAttribute(String key, String value) {
+  Future<void> addProfileAttribute(String key, String value) async {
     userProfile[key] = value;
+    await saveUserProfile();
   }
 
   String? getProfileAttribute(String key) {
     return userProfile[key];
+  }
+
+  Future<void> saveUserProfile() async {
+    print("saved to state ");
+    final prefs = await SharedPreferences.getInstance();
+    String userProfileJson = jsonEncode(userProfile); // Convert map to JSON
+    await prefs.setString('userProfile', userProfileJson); // Save JSON string
+  }
+
+  Future<void> loadUserProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    String userProfileJson =
+        prefs.getString('userProfile') ?? '{"isCountdownTimer": "on"}';
+
+    userProfile = Map<String, String>.from(jsonDecode(userProfileJson));
   }
 }
 
@@ -72,13 +90,22 @@ class AppStateModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> saveUserProfile() async {
+    await _preferences.saveUserProfile();
+  }
+
+  Future<void> loadUserProfile() async {
+    await _preferences.loadUserProfile();
+    notifyListeners();
+  }
+
   void clearMemoryMediaList() {
     _preferences.clearMemoryMediaList();
     notifyListeners();
   }
 
-  void addProfileAttribute(String key, String value) {
-    _preferences.addProfileAttribute(key, value);
+  Future<void> addProfileAttribute(String key, String value) async {
+    await _preferences.addProfileAttribute(key, value);
     notifyListeners();
   }
 
@@ -89,10 +116,6 @@ class AppStateModel extends ChangeNotifier {
 
 class GlobalState {
   static late BuildContext _context;
-
-static dynamic getState() {
-    return _getModel();
-  }
 
   static void init(BuildContext context) {
     _context = context;
@@ -120,6 +143,14 @@ static dynamic getState() {
         .mediaList;
   }
 
+  static Future<void> saveUserProfile() async {
+    await _getModel().saveUserProfile();
+  }
+
+  static Future<void> loadUserProfile() async {
+    await _getModel().loadUserProfile();
+  }
+
   static void addMedia(String path) {
     _getModel().addMedia(path);
   }
@@ -132,8 +163,8 @@ static dynamic getState() {
     _getModel().clearMemoryMediaList();
   }
 
-  static void addProfileAttribute(String key, String value) {
-    _getModel().addProfileAttribute(key, value);
+  static Future<void> addProfileAttribute(String key, String value) async {
+    await _getModel().addProfileAttribute(key, value);
   }
 
   static String? getProfileAttribute(String key) {

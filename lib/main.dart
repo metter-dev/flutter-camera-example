@@ -28,6 +28,11 @@ class CameraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    GlobalState.init(context);
+    GlobalState.loadUserProfile();
+
+    
     return MaterialApp(
       title: 'Flutter Camera Example',
       theme: ThemeData(

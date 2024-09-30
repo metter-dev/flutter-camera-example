@@ -138,43 +138,73 @@ class GalleryScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => const OrientationSelectionScreen()),
-          );
-        },
-        child: const Icon(Icons.add, color: Colors.white),
-        backgroundColor: const Color.fromARGB(255, 76, 116, 175),
-        shape: const CircleBorder(),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'הגדרות',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'פרופיל',
-          ),
-        ],
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const SettingsScreen()),
-            );
-          } else if (index == 1) {
-            Navigator.push(
+      floatingActionButton: Padding(
+        padding:
+            const EdgeInsets.only(bottom: 0), // Adjust this value as needed
+        child: SizedBox(
+          width: 96,
+          height: 96,
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const ProfileSettingsScreen()));
-          }
-        },
+                    builder: (context) => const OrientationSelectionScreen()),
+              );
+            },
+            child: const Icon(Icons.add, color: Colors.white, size: 40),
+            backgroundColor: const Color.fromARGB(255, 76, 116, 175),
+            shape: const CircleBorder(),
+          ),
+        ),
       ),
+      persistentFooterButtons: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                splashFactory: NoSplash.splashFactory,
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.settings),
+                  Text('הגדרות'),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ProfileSettingsScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                splashFactory: NoSplash.splashFactory,
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.person),
+                  Text('פרופיל'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }

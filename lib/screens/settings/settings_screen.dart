@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_camera_example/screens/settings/video_settings_screen.dart';
 
+import '../add-project/orientation_selection_screen.dart';
 import 'user-profile/step_1.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -32,33 +33,73 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Handle FAB press
-        },
-        child: const Icon(Icons.add, color: Colors.white),
-        backgroundColor: const Color.fromARGB(255, 76, 116, 175),
-        shape: const CircleBorder(),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'הגדרות',
+      floatingActionButton: Padding(
+        padding:
+            const EdgeInsets.only(bottom: 0), // Adjust this value as needed
+        child: SizedBox(
+          width: 96,
+          height: 96,
+          child: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const OrientationSelectionScreen()),
+              );
+            },
+            child: const Icon(Icons.add, color: Colors.white, size: 40),
+            backgroundColor: const Color.fromARGB(255, 76, 116, 175),
+            shape: const CircleBorder(),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'פרופיל',
-          ),
-        ],
-        onTap: (index) {
-          if (index == 0) {
-            // Already on settings screen
-          } else if (index == 1) {
-            print('ניווט למסך הפרופיל');
-          }
-        },
+        ),
       ),
+      persistentFooterButtons: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const SettingsScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                splashFactory: NoSplash.splashFactory,
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.settings),
+                  Text('הגדרות'),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ProfileSettingsScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blue,
+                splashFactory: NoSplash.splashFactory,
+              ),
+              child: const Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.person),
+                  Text('פרופיל'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ],
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
