@@ -1,4 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/screens/settings/user-profile/step_3.dart';
+import 'package:flutter_camera_example/utils/global_state.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'select_music_screen.dart';
 
@@ -14,8 +19,136 @@ class _AddListingDetailsScreenState extends State<AddListingDetailsScreen> {
   bool hideLogo = false;
   bool hidePhoto = false;
 
+  String? selectedIndex = GlobalState.getProfileAttribute('template');
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.microtask(() => _checkTemplateAndProfile());
+  }
+
+  void _checkTemplateAndProfile() {
+    print('checking template requirement');
+    print(selectedIndex);
+    print(mounted);
+
+    if (selectedIndex == 0 || selectedIndex == '0') {
+      final profileImage = GlobalState.getProfileAttribute('profileImage');
+
+      print(profileImage);
+
+      if (profileImage == null && mounted) {
+        print('showing dialog');
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                return AlertDialog(
+                  title: const Text('נדרשת תמונת פרופיל'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                          'תבנית זו דורשת תמונת פרופיל. אנא העלה תמונה להמשך.'),
+                      const SizedBox(height: 16),
+                      if (_imageFile != null)
+                        Container(
+                          width: 150,
+                          height: 150,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              _imageFile!,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.photo_camera),
+                            label: const Text('צלם תמונה'),
+                            onPressed: () async {
+                              final XFile? image = await _picker.pickImage(
+                                source: ImageSource.camera,
+                                preferredCameraDevice: CameraDevice.front,
+                              );
+                              if (image != null) {
+                                setState(() {
+                                  _imageFile = File(image.path);
+                                });
+                              }
+                            },
+                          ),
+                          ElevatedButton.icon(
+                            icon: const Icon(Icons.photo_library),
+                            label: const Text('בחר מגלריה'),
+                            onPressed: () async {
+                              final XFile? image = await _picker.pickImage(
+                                source: ImageSource.gallery,
+                              );
+                              if (image != null) {
+                                setState(() {
+                                  _imageFile = File(image.path);
+                                });
+                              }
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      child: const Text('בחר תבנית אחרת'),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      },
+                    ),
+                    TextButton(
+                      child: const Text('שמור'),
+                      onPressed: _imageFile == null
+                          ? null
+                          : () {
+                              GlobalState.addProfileAttribute(
+                                'profileImage',
+                                _imageFile!.path,
+                              );
+                              Navigator.pop(context);
+                            },
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
+
+    print('the template: ' + selectedIndex.toString());
+
+    // If the index is 0, it is a template which requires some additional checks.
+    // Use the GLobalState to retrive the profile attribute 'profileImage',
+    // if it doesn't exist - prompt user to input it.
+
     return Scaffold(
       appBar: AppBar(
         leading: TextButton(
@@ -151,6 +284,10 @@ class _AddListingDetailsScreenState extends State<AddListingDetailsScreen> {
           border: const OutlineInputBorder(),
           suffixIcon: icon != null ? Icon(icon) : null,
         ),
+        onChanged: (value) async {
+          print('changed with value' + value);
+          await GlobalState.addProfileAttribute(label, value);
+        },
       ),
     );
   }

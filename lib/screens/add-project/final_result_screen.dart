@@ -4,6 +4,7 @@ import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:video_player/video_player.dart';
 import 'package:provider/provider.dart';
 import 'dart:io';
+import 'package:share_plus/share_plus.dart';
 
 class FinalResultScreen extends StatefulWidget {
   const FinalResultScreen({Key? key}) : super(key: key);
@@ -51,8 +52,6 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
       _controller = VideoPlayerController.file(File(videoPath));
       await _controller!.initialize();
 
-
-
       if (!mounted) return;
 
       setState(() {
@@ -77,10 +76,21 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
       final appState = Provider.of<AppStateModel>(context, listen: false);
       final videoPath = appState.preferences.memoryMediaList.first.path;
 
-      final processedPath = await processVideoWithComplexOverlay(
-        videoPath,
+      String? templateStr =
+          appState.preferences.getProfileAttribute('template');
+      int? template = templateStr != null ? int.tryParse(templateStr) : null;
 
-      );
+      Future<String?> getProcessingFunction(
+          String videoPath, int? template) async {
+        switch (template) {
+          case 0:
+            return processLogoForAgents(videoPath);
+          default:
+            return await processVideoWithComplexOverlay(videoPath);
+        }
+      }
+
+      final processedPath = await getProcessingFunction(videoPath, template);
 
       if (!mounted) return;
 
@@ -97,6 +107,16 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
       setState(() {
         _errorMessage = 'Error processing video: $e';
       });
+    }
+  }
+
+  void _shareVideo() {
+    if (_processedVideoPath != null) {
+      Share.shareFiles([_processedVideoPath!], text: 'Check out my video!');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No video available to share')),
+      );
     }
   }
 
@@ -130,6 +150,15 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.of(context).pop(),
+              ),
+            ),
+          if (_isInitialized && _controller != null)
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.share, color: Colors.white),
+                onPressed: _shareVideo,
               ),
             ),
           if (_isInitialized && _controller != null)

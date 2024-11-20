@@ -129,8 +129,6 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
 
     return videoToShare;
   }
-
-
  
   Future<void> _initializeVideoPlayer() async {
     if (_processedVideoPath != null) {
@@ -203,9 +201,12 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-          
                 _buildTemplateCard(
                   index: 0,
+                  child: _buildTemplateForAgents(),
+                ),
+                _buildTemplateCard(
+                  index: 1,
                   child: _buildTemplatePreview(isFirstTemplate: true),
                 ),
               ],
@@ -317,6 +318,22 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     );
   }
 
+  Widget _buildTemplateForAgents() {
+    return Stack(
+      children: [
+        Image.asset('assets/home_interior.avif'),
+        const Positioned(
+          bottom: 12,
+          right: 12,
+          child: Image(
+            image: AssetImage('assets/user-profile-icon.jpg'),
+            width: 60,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildTemplatePreview({required bool isFirstTemplate}) {
     return Stack(
       children: [
@@ -345,214 +362,3 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     );
   }
 }
-
-
-
-            // Column(
-            //         children: [
-
-            //           ConstrainedBox(
-            //             constraints: BoxConstraints(
-            //               maxHeight: MediaQuery.of(context).size.height * 0.62,
-            //             ),
-            //             child: _isProcessing
-            //                 ? const Center(
-            //                     child: CircularProgressIndicator(),
-            //                   )
-            //                 : AspectRatio(
-            //                     aspectRatio:
-            //                         _videoController!.value.aspectRatio,
-            //                     child: VideoPlayer(_videoController!)),
-            //           ),
-                      
-            //           const SizedBox(height: 16),
-            //           Column(
-            //             children: [
-            //               ElevatedButton.icon(
-            //                 icon: const Icon(Icons.share),
-            //                 label: const Text('שיתוף בווצאפ'),
-            //                 onPressed: () => _shareToWhatsApp(),
-            //                 style: ElevatedButton.styleFrom(
-            //                   foregroundColor: Colors.white,
-            //                   backgroundColor: Colors.green,
-            //                 ),
-            //               ),
-            //               ElevatedButton.icon(
-            //                 icon: const Icon(Icons.facebook),
-            //                 label: const Text('שיתוף בפייסבוק'),
-            //                 onPressed: () => _shareToFacebook(context),
-            //                 style: ElevatedButton.styleFrom(
-            //                   foregroundColor: Colors.white,
-            //                   backgroundColor: Colors.blue,
-            //                 ),
-            //               ),
-            //               ElevatedButton.icon(
-            //                 icon: const Icon(Icons.telegram),
-            //                 label: const Text('שיתוף בטוויטר'),
-            //                 onPressed: () => _shareToTwitter(context),
-            //                 style: ElevatedButton.styleFrom(
-            //                   foregroundColor: Colors.white,
-            //                   backgroundColor: Colors.lightBlue,
-            //                 ),
-            //               ),
-            //               ElevatedButton.icon(
-            //                 icon: const Icon(Icons.camera_alt),
-            //                 label: const Text('שיתוף באינסטגרם'),
-            //                 onPressed: () => _shareToInstagram(context),
-            //                 style: ElevatedButton.styleFrom(
-            //                   foregroundColor: Colors.white,
-            //                   backgroundColor: Colors.purple,
-            //                 ),
-            //               ),
-            //             ],
-            //           ),
-            //           _buildTemplateCard(
-            //             index: 0,
-            //             child: _buildTemplatePreview(isFirstTemplate: true),
-            //           )
-            //         ],
-            //       )
-// Future<void> _processVideoWithTemplate(int templateIndex) async {
-//   setState(() {
-//     _isProcessing = true;
-//   });
-
-//   try {
-//     final appState = Provider.of<AppStateModel>(context, listen: false);
-//     final videoPath = appState.preferences.memoryMediaList.first.path;
-
-//     List<TextOverlay> textOverlays = [];
-//     List<BoxOverlay> boxOverlays = [];
-
-//     double w = MediaQuery.of(context).size.width;
-//     double h = MediaQuery.of(context).size.height;
-//     double pixelRatio = MediaQuery.of(context).devicePixelRatio;
-
-//     double detailsXOffset = 0.1;
-
-//     double footerLeftMargin = (w * pixelRatio) * 0.025;
-
-//     // List<ImageOverlay> imageOverlays = [];
-//     switch (templateIndex) {
-//       case 0:
-//         boxOverlays = [
-//           BoxOverlay(
-//               position: Offset(footerLeftMargin, 100),
-//               width: ((pixelRatio * w) * (0.85)),
-//               height: 75,
-//               backgroundColor: Colors.black,
-//               opacity: 0.4),
-//           BoxOverlay(
-//               position: Offset(footerLeftMargin, 175),
-//               width: ((pixelRatio * w) * (0.85)).roundToDouble(),
-//               height: 50,
-//               backgroundColor: Colors.white,
-//               opacity: 0.65),
-//           BoxOverlay(
-//             position: Offset(w * pixelRatio * (1 - detailsXOffset) - 180, 125),
-//             width: 75,
-//             height: 25,
-//             backgroundColor: Colors.red,
-//           )
-//         ];
-
-//         textOverlays = [
-//           TextOverlay(
-//             textColor: Colors.black,
-//             text: 'השם שלך מופיע כאן',
-//             position: Offset(detailsXOffset + 0.05, 175),
-//           ),
-//           TextOverlay(
-//             textColor: Colors.black,
-//             text: 'שח 1,000,000',
-//             position: const Offset(0.8, 175),
-//           ),
-//           TextOverlay(
-//             textColor: Colors.white,
-//             text: '(617) 123-4567',
-//             position: const Offset(0.8, 115),
-//           ),
-//           TextOverlay(
-//             textColor: Colors.white,
-//             text: '1234',
-//             position: Offset(detailsXOffset, 115),
-//           ),
-//         ];
-
-//         break;
-//       case 1:
-//         textOverlays = [
-//           TextOverlay(
-//             text: 'שח 1,000,000',
-//             position: const Offset(0.8, 0.9),
-//             textColor: Colors.white,
-//           ),
-//         ];
-
-//         break;
-//       default:
-//         textOverlays = [];
-//     }
-
-//     final processedPath = await processVideoWithComplexOverlay(
-//         videoPath, textOverlays, boxOverlays, [
-//       ImageOverlay(
-//           position: Offset(w * pixelRatio * (1 - detailsXOffset) - 145,
-//               (h) - (h * 3 * detailsXOffset) - 125))
-//     ]);
-//     _processedVideoPath = processedPath;
-//     await _initializeVideoPlayer();
-
-//     if (processedPath != null) {
-//       setState(() {
-//         _processedVideoPath = processedPath;
-//         _isProcessing = false;
-//       });
-//     } else {
-//       setState(() {
-//         _isProcessing = false;
-//       });
-//       throw Exception("Video processing failed");
-//     }
-//   } catch (e) {
-//     print("Error in _processVideoWithTemplate: $e");
-//     setState(() {
-//       _isProcessing = false;
-//     });
-//     ScaffoldMessenger.of(context).showSnackBar(
-//       SnackBar(content: Text('Error processing video: $e')),
-//     );
-//   }
-// }
-
-
-// Future<void> _shareToTwitter(BuildContext context) async {
-//   final videoPath = await _getVideoPath(context);
-//   if (videoPath == null) return;
-
-//   try {
-//     await Share.shareXFiles([XFile(videoPath)], text: 'Check out this video!');
-//     print("File shared successfully on Twitter");
-//   } catch (e) {
-//     print("Error sharing file on Twitter: $e");
-//   }
-// }
-
-// Future<void> _shareToInstagram(BuildContext context) async {
-//   final videoPath = await _getVideoPath(context);
-//   if (videoPath == null) return;
-
-//   // Instagram doesn't support direct video sharing via URL scheme
-//   // We'll open the Instagram app, but the user will need to manually share the video
-//   const instagramUrl = 'instagram://camera';
-//   if (await canLaunchUrl(Uri(path: instagramUrl))) {
-//     await launchUrl(Uri(path: instagramUrl));
-//     print("Opened Instagram app. User needs to manually share the video.");
-//   } else {
-//     print("Couldn't launch Instagram app");
-//   }
-// }
-
-// Future<void> _shareToWhatsApp() async {
-//   shareFile(context);
-// }

@@ -96,11 +96,11 @@ Future<String> processVideoSimple(String inputPath,
   int width = options?['width'] ?? -1; // -1 means maintain aspect ratio
   int height = options?['height'] ?? -1;
   double hue = options?['hue'] ?? 0.0;
-  double saturation = options?['saturation'] ?? 1.125; // Increased saturation
-  double brightness = options?['brightness'] ?? 0.2; // Increased brightness
-  double contrast = options?['contrast'] ?? 1.1; // Increased contrast
-  double sharpness = options?['sharpness'] ?? 1.5; // Increased sharpness
-  double vibrance = options?['vibrance'] ?? 1.025; // Increased vibrance
+  double saturation = options?['saturation'] ?? 1.125;
+  double brightness = options?['brightness'] ?? 0.2;
+  double contrast = options?['contrast'] ?? 1.1;
+  double sharpness = options?['sharpness'] ?? 1.5;
+  double vibrance = options?['vibrance'] ?? 1.025;
 
   // Construct the video filter string
   List<String> filters = [];
@@ -137,6 +137,71 @@ Future<String> processVideoSimple(String inputPath,
     return '';
   }
 }
+
+
+
+Future<String?> processLogoForAgents(String inputPath) async {
+  try {
+    print("testing what the state is");
+
+    dynamic userMusicChoice = GlobalState.getProfileAttribute('music');
+
+    print("The music file: " + userMusicChoice == null
+        ? 'no music selected'
+        : userMusicChoice.toString());
+
+    File imageFile = await copyAssetToTempAndRead('assets/bathtab.png');
+    String imageOverlayPath = imageFile.path;
+
+    File audio = await copyAssetToTempAndRead(userMusicChoice);
+    String audioPath = audio.path;
+
+    File outro = await copyAssetToTempAndRead('assets/outro.png');
+    String outroPath = outro.path;
+
+    final Directory tempDir = await getTemporaryDirectory();
+    final String outputPath = await _getOutputPath(tempDir);
+
+    final fontBytes = await rootBundle.load('assets/fonts/Rubik-Regular.ttf');
+    final fontFile = File('${tempDir.path}/Rubik-Regular.ttf');
+    await fontFile.writeAsBytes(fontBytes.buffer.asUint8List());
+
+    print("*********************************");
+    dynamic state = GlobalState.getProfile();
+    print(state);
+
+    String profileImagePath = state['profileImage'];
+
+    String temporaryOutputPath = await _getOutputPath(tempDir);
+    String ffmpegCommand1 =
+        '-i "$inputPath" -i "$profileImagePath" -i "$audioPath" -filter_complex "'
+        '[0:v]format=rgba,geq=r=\'r(X,Y)\':a=\'1*alpha(X,Y)\'[main];'
+        '[1:v]scale=iw*0.15:-1[scaled_img];'
+        '[main][scaled_img]overlay=main_w-overlay_w-10:main_h-overlay_h-10[final]'
+        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 1 -c:a aac -r 30 -shortest "$temporaryOutputPath"';
+
+    final session = await FFmpegKit.execute(ffmpegCommand1);
+
+    final returnCode = await session.getReturnCode();
+
+    if (ReturnCode.isSuccess(returnCode)) {
+      print("Video processing completed successfully.");
+      return temporaryOutputPath;
+    } else {
+      final logs = await session.getLogs();
+      print("Error while processing video. FFmpeg logs:");
+      for (var log in logs) {
+        print(log.getMessage());
+      }
+      return null;
+    }
+  } catch (e) {
+    print("Exception during video processing: $e");
+    return null;
+  }
+}
+  
+
 Future<String?> processVideoWithComplexOverlay(
     String inputPath,
     {bool isRTL = true}) async {
@@ -167,7 +232,7 @@ Future<String?> processVideoWithComplexOverlay(
     final fontFile = File('${tempDir.path}/Rubik-Regular.ttf');
     await fontFile.writeAsBytes(fontBytes.buffer.asUint8List());
 
-double marginPercentage = 0.05;
+    double marginPercentage = 0.05;
     double boxWidthPercentage = 0.9;
     int boxHeight = 65;
     double blackBoxYPercentage = 0.95;
@@ -178,7 +243,15 @@ double marginPercentage = 0.05;
     int fontSize = 28;
     int redBoxTextSize = 20;
 
-    
+    String? price =
+        GlobalState.getProfileAttribute('מחיר הנכס (לדוגמה: ₪500,000');
+    print("*********************************");
+    dynamic state = GlobalState.getProfile();
+    print(price);
+    print(state);
+
+    String userPrice = state['מחיר הנכס (לדוגמה: ₪500,000)'];
+
     String temporaryOutputPath = await _getOutputPath(tempDir);
 
     String ffmpegCommand1 =
@@ -186,13 +259,13 @@ double marginPercentage = 0.05;
         '[0:v]drawbox=x=iw*$marginPercentage:y=ih*$blackBoxYPercentage-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=black@0.75:t=fill[black_rect];'
         '[black_rect]drawbox=x=iw*$marginPercentage:y=ih*$whiteBoxYPercentage-$boxHeight-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=white@0.75:t=fill[white_rect];'
         '[white_rect]drawtext=fontfile=${fontFile.path.replaceAll("'", "'\\''").replaceAll('\\', '\\\\')}:'
-        'text=\'השם שלך כאן\':fontcolor=black:fontsize=$fontSize:x=w*$marginPercentage+7:y=h*$whiteBoxYPercentage-$textYOffset:box=1:boxcolor=white@0:boxborderw=5[text_rect];'
+        'text=\'שח $userPrice\':fontcolor=black:fontsize=$fontSize:x=w*$marginPercentage+7:y=h*$whiteBoxYPercentage-$textYOffset:box=1:boxcolor=white@0:boxborderw=5[text_rect];'
         '[text_rect]drawbox=x=iw*(1-$marginPercentage*1.5)-$redBoxSize*2:y=ih*$blackBoxYPercentage-$redBoxSize-7:w=$redBoxSize*2:h=$redBoxSize:color=red:t=fill[red_box];'
         '[red_box]drawtext=fontfile=${fontFile.path.replaceAll("'", "'\\''").replaceAll('\\', '\\\\')}:'
         'text=\'1234\':fontcolor=white:fontsize=$redBoxTextSize*1.5:x=(w-$redBoxSize*4)+$redBoxSize+14:y=h*$blackBoxYPercentage-$redBoxSize/2-7-7:box=0:boxcolor=white@0:boxborderw=0:shadowcolor=black@0.5:shadowx=1:shadowy=1[red_box_text];'
         '[1:v]scale=$imageOverlayWidth:-1[scaled_img];'
         '[red_box_text][scaled_img]overlay=x=W*(1-$marginPercentage*4.5)-$imageOverlayWidth:y=H*$blackBoxYPercentage-7-h[final]'
-        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v 5 -c:a aac -r 30 -shortest "$temporaryOutputPath"';
+        '" -map "[final]" -map 2:a -c:v mpeg4 -q:v  1 -c:a aac -r 30 -shortest "$temporaryOutputPath"';
 
     final session = await FFmpegKit.execute(ffmpegCommand1);
 

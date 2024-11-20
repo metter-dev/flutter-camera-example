@@ -42,6 +42,7 @@ class AppState {
 
   Future<void> addProfileAttribute(String key, String value) async {
     userProfile[key] = value;
+    print('updated userProfile to ' + userProfile.toString());
     await saveUserProfile();
   }
 
@@ -165,6 +166,10 @@ class GlobalState {
 
   static Future<void> addProfileAttribute(String key, String value) async {
     await _getModel().addProfileAttribute(key, value);
+  }
+
+  static getProfile() {
+    return _getModel()._preferences.userProfile;
   }
 
   static String? getProfileAttribute(String key) {
