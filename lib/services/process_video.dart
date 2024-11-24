@@ -141,8 +141,9 @@ Future<String> processVideoSimple(String inputPath,
 
 
 Future<String?> processLogoForAgents(String inputPath) async {
+  
   try {
-    print("testing what the state is");
+    print("testing processLogoForAgents");
 
     dynamic userMusicChoice = GlobalState.getProfileAttribute('music');
 
@@ -207,7 +208,7 @@ Future<String?> processVideoWithComplexOverlay(
     {bool isRTL = true}) async {
   try {
 
-    print("testing what the state is");
+    print("testing processVideoWithComplexOverlay");
 
     dynamic userMusicChoice = GlobalState.getProfileAttribute('music');
 

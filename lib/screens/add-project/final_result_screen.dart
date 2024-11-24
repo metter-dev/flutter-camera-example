@@ -92,6 +92,9 @@ class _FinalResultScreenState extends State<FinalResultScreen> {
 
       final processedPath = await getProcessingFunction(videoPath, template);
 
+      print("The function: " + processedPath.toString());
+      print("the index: " + template.toString());
+
       if (!mounted) return;
 
       if (processedPath != null) {
