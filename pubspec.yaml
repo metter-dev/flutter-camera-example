@@ -24,7 +24,8 @@ dependencies:
   image_picker: ^0.8.7+5
   flutter_colorpicker: ^1.0.3
   shared_preferences: ^2.0.6
-
+  sensors_plus: any
+  file_picker: ^6.1.1
 
 
 

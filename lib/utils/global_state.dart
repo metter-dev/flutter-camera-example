@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/classes/media.dart';
 import 'package:flutter_camera_example/classes/video.dart';
 import 'package:provider/provider.dart';
 import 'package:path_provider/path_provider.dart';
@@ -12,6 +13,62 @@ class AppState {
   List<String> mediaList = [];
   List<Video> memoryMediaList = [];
   Map<String, String> userProfile = {};
+
+  List<MediaItem> mediaItems = [];
+
+  void addMediaItem(MediaItem item) {
+    mediaItems.insert(0, item);
+  }
+
+  List<MediaItem> getMediaItems() {
+    return mediaItems;
+  }
+
+  Future<void> saveMediaItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final List<Map<String, dynamic>> serializedList = mediaItems.map((item) {
+      return {
+        'path': item.path,
+        'createdAt': item.createdAt.toIso8601String(),
+        'type': item.type.toString(),
+        if (item is VideoMedia) ...{
+          'duration': item.duration.inMilliseconds,
+          'thumbnail': item.thumbnail,
+        },
+        if (item is ImageMedia) ...{
+          'width': item.width,
+          'height': item.height,
+        },
+      };
+    }).toList();
+
+    await prefs.setString('mediaItems', jsonEncode(serializedList));
+  }
+
+  Future<void> loadMediaItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final String? jsonString = prefs.getString('mediaItems');
+    if (jsonString != null) {
+      final List<dynamic> decoded = jsonDecode(jsonString);
+      mediaItems = decoded.map((item) {
+        if (item['type'].toString().contains('video')) {
+          return VideoMedia(
+            path: item['path'],
+            duration: Duration(milliseconds: item['duration']),
+            thumbnail: item['thumbnail'],
+            createdAt: DateTime.parse(item['createdAt']),
+          );
+        } else {
+          return ImageMedia(
+            path: item['path'],
+            width: item['width'],
+            height: item['height'],
+            createdAt: DateTime.parse(item['createdAt']),
+          );
+        }
+      }).toList();
+    }
+  }
 
   void setSelectedOrientation(CameraOrientation orientation) {
     selectedOrientation = orientation;
@@ -71,6 +128,27 @@ class AppStateModel extends ChangeNotifier {
 
   AppState get preferences => _preferences;
 
+  void addMediaItem(MediaItem item) {
+    _preferences.addMediaItem(item);
+    notifyListeners();
+  }
+
+  List<MediaItem> getMediaItems() {
+    return _preferences.getMediaItems();
+  }
+
+  Future<void> saveMediaItems() async {
+    await _preferences.saveMediaItems();
+  }
+
+  Future<void> loadMediaItems() async {
+    await _preferences.loadMediaItems();
+    notifyListeners();
+  }
+
+  
+
+
   void setOrientation(CameraOrientation orientation) {
     _preferences.setSelectedOrientation(orientation);
     notifyListeners();
@@ -121,6 +199,23 @@ class GlobalState {
   static void init(BuildContext context) {
     _context = context;
   }
+
+  static void addMediaItem(MediaItem item) {
+    _getModel().addMediaItem(item);
+  }
+
+  static List<MediaItem> getMediaItems() {
+    return _getModel().getMediaItems();
+  }
+
+  static Future<void> saveMediaItems() async {
+    await _getModel().saveMediaItems();
+  }
+
+  static Future<void> loadMediaItems() async {
+    await _getModel().loadMediaItems();
+  }
+
 
   static AppStateModel _getModel() {
     return Provider.of<AppStateModel>(_context, listen: false);

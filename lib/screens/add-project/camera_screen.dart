@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_camera_example/classes/video.dart';
-import 'package:flutter_camera_example/screens/add-project/add_videos_screen.dart';
+import 'package:flutter_camera_example/screens/add-project/add_media_screen.dart';
 import 'package:flutter_camera_example/services/process_video.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
@@ -217,7 +217,7 @@ class _CameraScreenState extends State<CameraScreen>
     appState.addMedia(_videoPath);
 
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const AddVideosScreen()),
+      MaterialPageRoute(builder: (_) => const AddMediaScreen()),
     );
   }
 

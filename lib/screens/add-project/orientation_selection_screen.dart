@@ -1,7 +1,10 @@
+// deprecated screen
 import 'package:flutter/material.dart';
 import 'package:flutter_camera_example/screens/add-project/camera_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
+import 'package:flutter_camera_example/widgets/orientation_detector.dart';
 import 'package:provider/provider.dart';
+import 'package:sensors_plus/sensors_plus.dart';
 
 class OrientationSelectionScreen extends StatelessWidget {
   const OrientationSelectionScreen({Key? key}) : super(key: key);
@@ -57,24 +60,34 @@ class OrientationSelectionScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            const Text(
               'כיוון הקלטה',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text(
+            const SizedBox(height: 8),
+            StreamBuilder<AccelerometerEvent>(
+              stream: accelerometerEvents,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  return Text(
+                      snapshot.data!.x.abs() > 7.0 ? "landscape" : "portrait");
+                }
+                return const Text("unknown");
+              },
+            ),
+            const Text(
               'יש לבחור את מנח המכשיר כדי לצלם סרטונים',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey),
             ),
-            SizedBox(width: 16, height: 32),
-            Row(
+            const SizedBox(width: 16, height: 32),
+            const Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 _OrientationOption(

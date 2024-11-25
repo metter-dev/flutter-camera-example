@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:ffmpeg_kit_flutter_full/ffmpeg_kit.dart';
+import 'package:ffmpeg_kit_flutter_full/ffprobe_kit.dart';
 import 'package:ffmpeg_kit_flutter_full/return_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_camera_example/classes/media.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -138,10 +140,79 @@ Future<String> processVideoSimple(String inputPath,
   }
 }
 
+Future<List<String?>> processMediaFile(
+    List<MediaItem> mediaFiles, template) async {
+  try {
+    if (template == 0 || template == '0') {
+      final logoPath = GlobalState.getProfileAttribute('profileImage');
+      int length = mediaFiles.length;
+      print("processMediaFile");
+      print(logoPath);
+      print(mediaFiles);
+      print(template);
+      print(length);
 
+      // Create a temporary directory to store processed images
+      final tempDir =
+          await Directory.systemTemp.createTemp('processed_images_');
+      List<String> processedPaths = [];
+
+      // Process each media file
+      for (var mediaFile in mediaFiles) {
+        if (mediaFile.type != MediaType.image) continue;
+
+        final inputPath = mediaFile.path;
+        final fileName = path.basename(inputPath);
+        final outputPath = path.join(tempDir.path, 'processed_$fileName');
+
+        // Get input image dimensions
+        final probeCommand =
+            '-i "$inputPath" -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0';
+        final probeResult = await FFprobeKit.execute(probeCommand);
+        final dimensions = (await probeResult.getOutput())?.split(',');
+
+        if (dimensions == null || dimensions.length != 2) continue;
+
+        final inputWidth = int.parse(dimensions[0]);
+        final inputHeight = int.parse(dimensions[1]);
+
+        // Calculate logo size (e.g., 1/6 of the image width)
+        final logoSize = inputWidth ~/ 6;
+        // Calculate padding from bottom-right corner (e.g., 20 pixels)
+        const padding = 35;
+
+        // Build FFmpeg command
+        final command = '-i "$inputPath" -i "$logoPath" '
+            '-filter_complex "'
+            '[1:v]scale=$logoSize:$logoSize[logo];'
+            '[0:v][logo]overlay=W-w-$padding:H-h-$padding"'
+            ' -quality 95 "$outputPath"';
+
+        // Execute FFmpeg command
+        final session = await FFmpegKit.execute(command);
+        final returnCode = await session.getReturnCode();
+
+        if (ReturnCode.isSuccess(returnCode)) {
+          processedPaths.add(outputPath);
+        } else {
+          print(
+              'Error processing ${mediaFile.path}: ${await session.getLogsAsString()}');
+        }
+      }
+
+      // If all files were processed successfully, return the paths as a comma-separated string
+      if (processedPaths.isNotEmpty) {
+        return processedPaths;
+      }
+    }
+  } catch (e) {
+    print("processMediaFile error");
+    print(e);
+  }
+  return [];
+}
 
 Future<String?> processLogoForAgents(String inputPath) async {
-  
   try {
     print("testing processLogoForAgents");
 
