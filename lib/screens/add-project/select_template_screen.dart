@@ -1,6 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/classes/steps.dart';
+import 'package:flutter_camera_example/screens/add-project/select_music_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
+import 'package:flutter_camera_example/widgets/StepIndicator.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -9,6 +12,8 @@ import 'package:whatsapp_share/whatsapp_share.dart';
 import 'package:path/path.dart' as path;
 
 import 'add_listing_details.dart';
+
+int pageIndex = 3;
 
 class SelectTemplateScreen extends StatefulWidget {
   const SelectTemplateScreen({Key? key}) : super(key: key);
@@ -171,7 +176,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                    builder: (context) => const AddListingDetailsScreen()),
+                    builder: (context) => const SelectMusicScreen()),
               );
             },
           ),
@@ -179,7 +184,7 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
       ),
       body: Column(
         children: [
-          _buildStepIndicator(),
+          const StepIndicator(pageIndex: 2),
           const Padding(
             padding: EdgeInsets.all(16.0),
             child: Column(
@@ -198,65 +203,27 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
           ),
           _buildTemplateFilters(),
           Expanded(
-            child: ListView(
+            child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              children: [
-                _buildTemplateCard(
-                  index: 0,
-                  child: _buildTemplateForAgents(),
-                ),
-                _buildTemplateCard(
-                  index: 1,
-                  child: _buildTemplatePreview(isFirstTemplate: true),
-                ),
-              ],
+              itemCount: templates.length,
+              itemBuilder: (context, index) {
+                final template = templates[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 8),
+                    _buildTemplateCard(
+                      index: template.index,
+                      child: template.buildWidget(),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildStepIndicator() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(5, (index) {
-          return Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: index == 0
-                      ? Colors.green
-                      : (index == 1 ? Colors.green : Colors.grey[300]),
-                  border: Border.all(
-                      color: index <= 1 ? Colors.green : Colors.grey[300]!),
-                ),
-                child: Center(
-                  child: index == 0
-                      ? const Icon(Icons.check, color: Colors.white, size: 20)
-                      : Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color: index == 1 ? Colors.white : Colors.grey,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                ),
-              ),
-              if (index < 4)
-                Container(
-                  width: 20,
-                  height: 2,
-                  color: index < 1 ? Colors.green : Colors.grey[300],
-                ),
-            ],
-          );
-        }),
+
+        ],
       ),
     );
   }
@@ -318,47 +285,3 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     );
   }
 
-  Widget _buildTemplateForAgents() {
-    return Stack(
-      children: [
-        Image.asset('assets/home_interior.avif'),
-        const Positioned(
-          bottom: 12,
-          right: 12,
-          child: Image(
-            image: AssetImage('assets/user-profile-icon.jpg'),
-            width: 60,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTemplatePreview({required bool isFirstTemplate}) {
-    return Stack(
-      children: [
-        Image.asset('assets/templates/template_example.png'),
-        const Positioned(
-          top: 8,
-          right: 8,
-          child: CircleAvatar(
-            backgroundImage:
-                AssetImage('assets/templates/template_example.png'),
-            radius: 20,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoItem(IconData icon, String text,
-      {Color color = Colors.black}) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: color),
-        const SizedBox(width: 4),
-        Text(text, style: TextStyle(color: color)),
-      ],
-    );
-  }
-}

@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_camera_example/screens/settings/user-profile/step_3.dart';
+import 'package:flutter_camera_example/screens/add-project/add_media_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'select_music_screen.dart';
+
+int pageIndex = 0;
 
 class AddListingDetailsScreen extends StatefulWidget {
   const AddListingDetailsScreen({Key? key}) : super(key: key);
@@ -165,7 +167,7 @@ class _AddListingDetailsScreenState extends State<AddListingDetailsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const SelectMusicScreen()),
+                    builder: (context) => const AddMediaScreen()),
               );
             },
           ),
@@ -299,6 +301,10 @@ Widget _buildStepIndicator() {
     child: Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(5, (index) {
+        final bool isCompleted =
+            index < pageIndex; // Steps before the current step
+        final bool isCurrent = index == pageIndex; // Current step
+
         return Row(
           children: [
             Container(
@@ -306,29 +312,32 @@ Widget _buildStepIndicator() {
               height: 30,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: index <= 2
+                color: isCompleted
                     ? Colors.green
-                    : (index <= 2 ? Colors.green : Colors.grey[300]),
+                    : (isCurrent ? Colors.green : Colors.grey[300]),
                 border: Border.all(
-                    color: index <= 2 ? Colors.green : Colors.grey[300]!),
+                  color: isCompleted || isCurrent
+                      ? Colors.green
+                      : Colors.grey[300]!,
+                ),
               ),
               child: Center(
-                child: index <= 1
+                child: isCompleted
                     ? const Icon(Icons.check, color: Colors.white, size: 20)
                     : Text(
                         '${index + 1}',
                         style: TextStyle(
-                          color: index <= 2 ? Colors.white : Colors.grey,
+                          color: isCurrent ? Colors.white : Colors.grey,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
               ),
             ),
-            if (index < 4)
+            if (index < 4) // Only add a connector if not the last step
               Container(
                 width: 20,
                 height: 2,
-                color: index < 2 ? Colors.green : Colors.grey[300],
+                color: isCompleted ? Colors.green : Colors.grey[300],
               ),
           ],
         );

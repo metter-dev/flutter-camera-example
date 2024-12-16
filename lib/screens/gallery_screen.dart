@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_camera_example/screens/add-project/add_listing_details.dart';
 import 'package:flutter_camera_example/screens/add-project/add_media_screen.dart';
 import 'package:flutter_camera_example/screens/settings/settings_screen.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
@@ -150,7 +151,7 @@ class GalleryScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const AddMediaScreen()),
+                    builder: (context) => const AddListingDetailsScreen()),
               );
             },
             child: const Icon(Icons.add, color: Colors.white, size: 40),

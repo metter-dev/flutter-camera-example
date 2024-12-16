@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_camera_example/services/init_fonts.dart';
 import 'package:flutter_camera_example/utils/global_state.dart';
 import 'package:provider/provider.dart';
 import 'screens/gallery_screen.dart';
@@ -15,6 +16,7 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
   cameras = await availableCameras();
+  initializeFont();
   runApp(
     ChangeNotifierProvider(
       create: (context) => AppStateModel(),

@@ -29,13 +29,13 @@ class VideoMedia extends MediaItem {
 }
 
 class ImageMedia extends MediaItem {
-  final int width;
-  final int height;
+  int? width;
+  int? height;
 
   ImageMedia({
     required String path,
-    required this.width,
-    required this.height,
+    int? width,
+    int? height,
     DateTime? createdAt,
   }) : super(
           path: path,
