@@ -285,3 +285,4 @@ class _SelectTemplateScreenState extends State<SelectTemplateScreen> {
     );
   }
 
+}

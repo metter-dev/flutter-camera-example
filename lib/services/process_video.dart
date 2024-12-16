@@ -422,50 +422,33 @@ Future<String?> processVideoWithComplexOverlay(
         GlobalState.getProfileAttribute('מחיר הנכס (לדוגמה: ₪500,000') ?? '500';
     print("*********************************");
     dynamic state = GlobalState.getProfile();
-    print(price);
-    print(state);
 
     String userPrice = state['מחיר הנכס (לדוגמה: ₪500,000)'] ?? '500';
+    print(userPrice);
 
     String temporaryOutputPath = await _getOutputPath(tempDir);
 
-    // First, let's separate our filter complex components for clarity
+String whiteText = "4";
+
     String filterComplex = ''
-        // Base video/image input with black box
-        '[0:v]drawbox=x=iw*$marginPercentage:'
-        'y=ih*$blackBoxYPercentage-$boxHeight:'
-        'w=iw*$boxWidthPercentage:'
-        'h=$boxHeight:'
-        'color=black@0.75:'
-        't=fill[black_rect];'
+        // First add the black box at the bottom
+        '[0:v]drawbox=x=0:y=ih-65:w=iw:h=65:color=black@0.75:t=fill[with_box];'
 
-        // White box overlay
-        '[black_rect]drawbox=x=iw*$marginPercentage:'
-        'y=ih*$whiteBoxYPercentage-$boxHeight-$boxHeight:'
-        'w=iw*$boxWidthPercentage:'
-        'h=$boxHeight:'
-        'color=white@0.75:'
-        't=fill[white_rect];'
+        // Add white text at a fixed position in the black box
+        '[with_box]drawtext='
+        'fontfile=${fontFile.path.replaceAll(r'\', r'\\')}:'
+        'text=YOUR TEXT HERE:'
+        'fontcolor=white:'
+        'fontsize=20:'
+        'x=w-150:y=h-45' // Fixed position, 150px from right, 45px from bottom
+        '[with_text];'
 
-        // Add the text with proper escaping for the font file
-        '[white_rect]drawtext='
-        'fontfile=${fontFile.path.replaceAll(r'\', r'\\').replaceAll("'", r"'\'")}:'
-        'text=$userPrice:'
-        'fontcolor=black:'
-        'fontsize=$fontSize:'
-        'x=w*$marginPercentage+7:'
-        'y=h*$whiteBoxYPercentage-$textYOffset:'
-        'box=1:'
-        'boxcolor=white@0:'
-        'boxborderw=5[text_rect];'
+        // Scale the icon
+        '[1:v]scale=48:-1[icon];'
 
-        // Scale the overlay image
-        '[1:v]scale=$imageOverlayWidth:-1[scaled_img];'
+        // Place the icon after the text
+        '[with_text][icon]overlay=x=w-60:y=h-55'; // Fixed position, 60px from right, 55px from bottom
 
-        // Final overlay composition
-        '[text_rect][scaled_img]overlay='
-        'x=W*(1-$marginPercentage*4.5)-$imageOverlayWidth:'
-        'y=H*$blackBoxYPercentage-7-h[final]';
 
     // Construct the full FFmpeg command
     String ffmpegCommand = '-i "$inputPath" '
@@ -475,6 +458,7 @@ Future<String?> processVideoWithComplexOverlay(
         '-frames:v 1 '
         '-q:v 2 '
         '"$temporaryOutputPath.png"';
+
     // String ffmpegCommand1 =
     //     '-i "$inputPath" -i "$imageOverlayPath" -i "$audioPath" -filter_complex "'
     //     '[0:v]drawbox=x=iw*$marginPercentage:y=ih*$blackBoxYPercentage-$boxHeight:w=iw*$boxWidthPercentage:h=$boxHeight:color=black@0.75:t=fill[black_rect];'
